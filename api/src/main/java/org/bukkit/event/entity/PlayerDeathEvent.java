@@ -36,7 +36,6 @@ public class PlayerDeathEvent extends EntityDeathEvent {
     }
     // Paper end
 
-    @Deprecated // Paper
     public PlayerDeathEvent(@NotNull final Player player, @NotNull final List<ItemStack> drops, final int droppedExp, @Nullable final String deathMessage) {
         this(player, drops, droppedExp, 0, deathMessage);
     }
@@ -55,6 +54,41 @@ public class PlayerDeathEvent extends EntityDeathEvent {
         this.deathMessage = deathMessage;
         this.adventure$deathMessage = deathMessage != null ? net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(deathMessage) : net.kyori.adventure.text.Component.empty(); // Paper
     }
+
+    @Deprecated // Paper
+    // Paper start
+    private List<ItemStack> itemsToKeep = new java.util.ArrayList<>();
+
+    /**
+     * A mutable collection to add items that the player should retain in their inventory on death (Similar to KeepInventory game rule)
+     *
+     * You <b>MUST</b> remove the item from the .getDrops() collection too or it will duplicate!
+     * <pre>{@code
+     *    {@literal @EventHandler(ignoreCancelled = true)}
+     *     public void onPlayerDeath(PlayerDeathEvent event) {
+     *         for (Iterator<ItemStack> iterator = event.getDrops().iterator(); iterator.hasNext(); ) {
+     *             ItemStack drop = iterator.next();
+     *             List<String> lore = drop.getLore();
+     *             if (lore != null && !lore.isEmpty()) {
+     *                 if (lore.get(0).contains("(SOULBOUND)")) {
+     *                     iterator.remove();
+     *                     event.getItemsToKeep().add(drop);
+     *                 }
+     *             }
+     *         }
+     *     }
+     * }</pre>
+     *
+     * Adding an item to this list that the player did not previously have will give them the item on death.
+     * An example case could be a "Note" that "You died at X/Y/Z coordinates"
+     *
+     * @return The list to hold items to keep
+     */
+    @NotNull
+    public List<ItemStack> getItemsToKeep() {
+        return itemsToKeep;
+    }
+    // Paper end
 
     @NotNull
     @Override
