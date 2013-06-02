@@ -357,6 +357,7 @@ public class CraftMetaBook extends CraftMetaItem implements BookMeta {
         if (this.pages != null) {
             meta.pages = new ArrayList<String>(this.pages);
         }
+        meta.spigot = meta.new SpigotMeta(); // Spigot
         return meta;
     }
 
@@ -430,4 +431,15 @@ public class CraftMetaBook extends CraftMetaItem implements BookMeta {
 
         return builder;
     }
+
+    // Spigot start
+    private BookMeta.Spigot spigot = new SpigotMeta();
+    private class SpigotMeta extends BookMeta.Spigot {
+    };
+
+    @Override
+    public BookMeta.Spigot spigot() {
+        return spigot;
+    }
+    // Spigot end
 }
