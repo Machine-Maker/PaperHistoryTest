@@ -1,0 +1,21 @@
+From 2cdf2c77a8c7e66d51ac9356b4893c60f0489f77 Mon Sep 17 00:00:00 2001
+From: md_5 <md_5@live.com.au>
+Date: Fri, 21 Jun 2013 18:01:29 +1000
+Subject: [PATCH] Allow Disabling of Command Logging
+
+
+diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
+index 78615b5c6..8e355a4a4 100644
+--- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
+@@ -2103,6 +2103,7 @@ public class PlayerConnection implements ServerPlayerConnection, TickablePacketL
+ 
+     private void handleCommand(String s) {
+         org.bukkit.craftbukkit.SpigotTimings.playerCommandTimer.startTiming(); // Spigot
++        if ( org.spigotmc.SpigotConfig.logCommands ) // Spigot
+         this.LOGGER.info(this.player.getScoreboardName() + " issued server command: " + s);
+ 
+         CraftPlayer player = this.getCraftPlayer();
+-- 
+2.37.0
+
