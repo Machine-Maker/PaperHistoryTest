@@ -1,0 +1,47 @@
+From 61692d8e979b999473017757d404baa332cdf93e Mon Sep 17 00:00:00 2001
+From: md_5 <md_5@live.com.au>
+Date: Fri, 21 Jun 2013 19:21:58 +1000
+Subject: [PATCH] Configurable Messages
+
+
+diff --git a/src/main/java/net/minecraft/server/network/HandshakeListener.java b/src/main/java/net/minecraft/server/network/HandshakeListener.java
+index fa7cf0ea9..190fb0006 100644
+--- a/src/main/java/net/minecraft/server/network/HandshakeListener.java
++++ b/src/main/java/net/minecraft/server/network/HandshakeListener.java
+@@ -73,9 +73,9 @@ public class HandshakeListener implements PacketHandshakingInListener {
+                     IChatMutableComponent ichatmutablecomponent;
+ 
+                     if (packethandshakinginsetprotocol.getProtocolVersion() < 754) {
+-                        ichatmutablecomponent = IChatBaseComponent.translatable("multiplayer.disconnect.outdated_client", SharedConstants.getCurrentVersion().getName());
++                        ichatmutablecomponent = IChatBaseComponent.literal( java.text.MessageFormat.format( org.spigotmc.SpigotConfig.outdatedClientMessage.replaceAll("'", "''"), SharedConstants.getCurrentVersion().getName() ) ); // Spigot
+                     } else {
+-                        ichatmutablecomponent = IChatBaseComponent.translatable("multiplayer.disconnect.incompatible", SharedConstants.getCurrentVersion().getName());
++                        ichatmutablecomponent = IChatBaseComponent.literal( java.text.MessageFormat.format( org.spigotmc.SpigotConfig.outdatedServerMessage.replaceAll("'", "''"), SharedConstants.getCurrentVersion().getName() ) ); // Spigot
+                     }
+ 
+                     this.connection.send(new PacketLoginOutDisconnect(ichatmutablecomponent));
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index 4165c93a0..fa218ef37 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -585,7 +585,7 @@ public abstract class PlayerList {
+             event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(ichatmutablecomponent));
+         } else if (!this.isWhiteListed(gameprofile)) {
+             ichatmutablecomponent = IChatBaseComponent.translatable("multiplayer.disconnect.not_whitelisted");
+-            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, CraftChatMessage.fromComponent(ichatmutablecomponent));
++            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, org.spigotmc.SpigotConfig.whitelistMessage); // Spigot
+         } else if (getIpBans().isBanned(socketaddress) && !getIpBans().get(socketaddress).hasExpired()) {
+             IpBanEntry ipbanentry = this.ipBans.get(socketaddress);
+ 
+@@ -599,7 +599,7 @@ public abstract class PlayerList {
+         } else {
+             // return this.players.size() >= this.maxPlayers && !this.canBypassPlayerLimit(gameprofile) ? IChatBaseComponent.translatable("multiplayer.disconnect.server_full") : null;
+             if (this.players.size() >= this.maxPlayers && !this.canBypassPlayerLimit(gameprofile)) {
+-                event.disallow(PlayerLoginEvent.Result.KICK_FULL, "The server is full");
++                event.disallow(PlayerLoginEvent.Result.KICK_FULL, org.spigotmc.SpigotConfig.serverFullMessage); // Spigot
+             }
+         }
+ 
+-- 
+2.37.0
+
