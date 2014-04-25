@@ -1,0 +1,22 @@
+From c85c8bbe55e1a447e9a48ea9697940e2a2864a7f Mon Sep 17 00:00:00 2001
+From: drXor <mcyoungsota@gmail.com>
+Date: Fri, 25 Apr 2014 18:17:30 -0400
+Subject: [PATCH] Configurable UserCache cap
+
+
+diff --git a/src/main/java/net/minecraft/server/players/UserCache.java b/src/main/java/net/minecraft/server/players/UserCache.java
+index dd6c8a284..2a6872967 100644
+--- a/src/main/java/net/minecraft/server/players/UserCache.java
++++ b/src/main/java/net/minecraft/server/players/UserCache.java
+@@ -273,7 +273,7 @@ public class UserCache {
+         JsonArray jsonarray = new JsonArray();
+         DateFormat dateformat = createDateFormat();
+ 
+-        this.getTopMRUProfiles(1000).forEach((usercache_usercacheentry) -> {
++        this.getTopMRUProfiles(org.spigotmc.SpigotConfig.userCacheCap).forEach((usercache_usercacheentry) -> { // Spigot
+             jsonarray.add(writeGameProfile(usercache_usercacheentry, dateformat));
+         });
+         String s = this.gson.toJson(jsonarray);
+-- 
+2.37.0
+
