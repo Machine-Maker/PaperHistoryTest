@@ -1,0 +1,24 @@
+From 13834fe57fb953b89b70c00a174eaf9310436340 Mon Sep 17 00:00:00 2001
+From: Thinkofdeath <thinkofdeath@spigotmc.org>
+Date: Wed, 2 Jul 2014 23:35:51 +0100
+Subject: [PATCH] Better item validation
+
+
+diff --git a/src/main/java/net/minecraft/network/PacketDataSerializer.java b/src/main/java/net/minecraft/network/PacketDataSerializer.java
+index e06014976..91bbb9ff4 100644
+--- a/src/main/java/net/minecraft/network/PacketDataSerializer.java
++++ b/src/main/java/net/minecraft/network/PacketDataSerializer.java
+@@ -564,6 +564,10 @@ public class PacketDataSerializer extends ByteBuf {
+             NBTTagCompound nbttagcompound = null;
+ 
+             if (item.canBeDepleted() || item.shouldOverrideMultiplayerNbt()) {
++                // Spigot start - filter
++                itemstack = itemstack.copy();
++                CraftItemStack.setItemMeta(itemstack, CraftItemStack.getItemMeta(itemstack));
++                // Spigot end
+                 nbttagcompound = itemstack.getTag();
+             }
+ 
+-- 
+2.37.0
+
