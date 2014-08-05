@@ -1,0 +1,42 @@
+From 3fd459c733e9f949b5785d619e4706ba1b6d6c8d Mon Sep 17 00:00:00 2001
+From: md_5 <md_5@live.com.au>
+Date: Tue, 5 Aug 2014 17:20:19 +0100
+Subject: [PATCH] Watchdog Thread.
+
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 94d878818..12b5bf538 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1013,6 +1013,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+                     this.services.profileCache().clearExecutor();
+                 }
+ 
++                org.spigotmc.WatchdogThread.doStop(); // Spigot
+                 // CraftBukkit start - Restore terminal to original settings
+                 try {
+                     reader.getTerminal().restore();
+@@ -1196,6 +1197,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+ 
+         this.frameTimer.logFrameDuration(i1 - i);
+         this.profiler.pop();
++        org.spigotmc.WatchdogThread.tick(); // Spigot
+         SpigotTimings.serverTickTimer.stopTiming(); // Spigot
+         org.spigotmc.CustomTimingsHandler.tick(); // Spigot
+     }
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index c513b02eb..a6d388db4 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -265,7 +265,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+                 this.remoteConsole = new org.bukkit.craftbukkit.command.CraftRemoteConsoleCommandSender(this.rconConsoleSource); // CraftBukkit
+             }
+ 
+-            if (this.getMaxTickLength() > 0L) {
++            if (false && this.getMaxTickLength() > 0L) {  // Spigot - disable
+                 Thread thread1 = new Thread(new ThreadWatchdog(this));
+ 
+                 thread1.setUncaughtExceptionHandler(new ThreadNamedUncaughtExceptionHandler(DedicatedServer.LOGGER));
+-- 
+2.37.0
+
