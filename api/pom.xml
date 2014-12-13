@@ -46,6 +46,13 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
+            <version>1.16-R0.4</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.30</version>
@@ -178,6 +185,7 @@
                         <link>https://guava.dev/releases/31.0.1-jre/api/docs/</link>
                         <link>https://javadoc.io/doc/org.yaml/snakeyaml/1.30/</link>
                         <link>https://javadoc.io/doc/org.jetbrains/annotations-java5/23.0.0/</link>
+                        <link>https://javadoc.io/doc/net.md-5/bungeecord-chat/1.16-R0.4/</link>
                     </links>
                 </configuration>
             </plugin>
