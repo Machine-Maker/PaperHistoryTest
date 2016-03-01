@@ -2673,6 +2673,62 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
     int getSimulationDistance();
     // Spigot end
 
+    // Paper start - view distance api
+    /**
+     * Sets the view distance for this world.
+     * @param viewDistance view distance in [2, 32]
+     */
+    void setViewDistance(int viewDistance);
+
+    /**
+     * Sets the simulation distance for this world.
+     * @param simulationDistance simulation distance in [2, 32]
+     */
+    void setSimulationDistance(int simulationDistance);
+
+    /**
+     * Returns the no-tick view distance for this world.
+     * <p>
+     * No-tick view distance is the view distance where chunks will load, however the chunks and their entities will not
+     * be set to tick.
+     * </p>
+     * @return The no-tick view distance for this world.
+     * @deprecated Use {@link #getViewDistance()}
+     */
+    @Deprecated
+    int getNoTickViewDistance();
+
+    /**
+     * Sets the no-tick view distance for this world.
+     * <p>
+     * No-tick view distance is the view distance where chunks will load, however the chunks and their entities will not
+     * be set to tick.
+     * </p>
+     * @param viewDistance view distance in [2, 32]
+     * @deprecated Use {@link #setViewDistance(int)}
+     */
+    @Deprecated
+    void setNoTickViewDistance(int viewDistance);
+
+    /**
+     * Gets the sending view distance for this world.
+     * <p>
+     * Sending view distance is the view distance where chunks will load in for players in this world.
+     * </p>
+     * @return The sending view distance for this world.
+     */
+    int getSendViewDistance();
+
+    /**
+     * Sets the sending view distance for this world.
+     * <p>
+     * Sending view distance is the view distance where chunks will load in for players in this world.
+     * </p>
+     * @param viewDistance view distance in [2, 32] or -1
+     */
+    void setSendViewDistance(int viewDistance);
+    // Paper end - view distance api
+
     // Spigot start
     public class Spigot {
 
