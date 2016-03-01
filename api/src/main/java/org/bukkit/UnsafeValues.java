@@ -31,6 +31,7 @@ public interface UnsafeValues {
     @Deprecated(forRemoval = true) net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer legacyComponentSerializer();
     // Paper end
 
+    void reportTimings(); // Paper
     Material toLegacy(Material material);
 
     Material fromLegacy(Material material);
@@ -86,4 +87,12 @@ public interface UnsafeValues {
     Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(Material material, EquipmentSlot slot);
 
     CreativeCategory getCreativeCategory(Material material);
+
+    // Paper start
+    /**
+     * Server name to report to timings v2
+     * @return name
+     */
+    String getTimingsServerName();
+    // Paper end
 }
