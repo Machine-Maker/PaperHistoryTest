@@ -18,6 +18,7 @@ dependencies {
     api("com.googlecode.json-simple:json-simple:1.1.1") {
         isTransitive = false // includes junit
     }
+    api("it.unimi.dsi:fastutil:8.5.6")
     // Paper end
 
     compileOnly("org.apache.maven:maven-resolver-provider:3.8.5")
