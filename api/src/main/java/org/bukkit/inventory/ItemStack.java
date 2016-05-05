@@ -611,5 +611,20 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
     public @NotNull net.kyori.adventure.text.Component displayName() {
         return Bukkit.getServer().getItemFactory().displayName(this);
     }
+
+    /**
+     * Gets the Display name as seen in the Client.
+     * Currently the server only supports the English language. To override this,
+     * You must replace the language file embedded in the server jar.
+     *
+     * @return Display name of Item
+     * @deprecated {@link ItemStack} implements {@link net.kyori.adventure.translation.Translatable}; use that and
+     * {@link net.kyori.adventure.text.Component#translatable(net.kyori.adventure.translation.Translatable)} instead.
+     */
+    @Nullable
+    @Deprecated
+    public String getI18NDisplayName() {
+        return Bukkit.getServer().getItemFactory().getI18NDisplayName(this);
+    }
     // Paper end
 }
