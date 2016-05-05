@@ -192,5 +192,17 @@ public interface ItemFactory {
     @Nullable
     @Deprecated
     String getI18NDisplayName(@Nullable ItemStack item);
+
+    /**
+     * Minecraft updates are converting simple item stacks into more complex NBT oriented Item Stacks.
+     *
+     * Use this method to to ensure any desired data conversions are processed.
+     * The input itemstack will not be the same as the returned itemstack.
+     *
+     * @param item The item to process conversions on
+     * @return A potentially Data Converted ItemStack
+     */
+    @NotNull
+    ItemStack ensureServerConversions(@NotNull ItemStack item);
     // Paper end
 }
