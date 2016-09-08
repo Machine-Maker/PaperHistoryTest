@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AlphaBlend <whizkid3000@hotmail.com>
+Date: Thu, 8 Sep 2016 08:48:33 -0700
+Subject: [PATCH] Add source to PlayerExpChangeEvent
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/ExperienceOrb.java b/src/main/java/net/minecraft/world/entity/ExperienceOrb.java
+index dba0bc7dc8fd1993f45716a398b1ccf52d3d868b..b3433ce9c722bdab81848a6c2d121ca510c48509 100644
+--- a/src/main/java/net/minecraft/world/entity/ExperienceOrb.java
++++ b/src/main/java/net/minecraft/world/entity/ExperienceOrb.java
+@@ -247,7 +247,7 @@ public class ExperienceOrb extends Entity {
+                 int i = this.repairPlayerItems(player, this.value);
+ 
+                 if (i > 0) {
+-                    player.giveExperiencePoints(CraftEventFactory.callPlayerExpChangeEvent(player, i).getAmount()); // CraftBukkit - this.value -> event.getAmount()
++                    player.giveExperiencePoints(CraftEventFactory.callPlayerExpChangeEvent(player, this).getAmount()); // CraftBukkit - this.value -> event.getAmount() // Paper - supply experience orb object
+                 }
+ 
+                 --this.count;
