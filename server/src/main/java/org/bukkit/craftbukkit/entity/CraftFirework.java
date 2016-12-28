@@ -78,4 +78,17 @@ public class CraftFirework extends CraftProjectile implements Firework {
     public void setShotAtAngle(boolean shotAtAngle) {
         this.getHandle().getEntityData().set(FireworkRocketEntity.DATA_SHOT_AT_ANGLE, shotAtAngle);
     }
+
+    // Paper start
+    @Override
+    public java.util.UUID getSpawningEntity() {
+        return getHandle().spawningEntity;
+    }
+
+    @Override
+    public org.bukkit.entity.LivingEntity getBoostedEntity() {
+        net.minecraft.world.entity.LivingEntity boostedEntity = getHandle().attachedToEntity;
+        return boostedEntity != null ? (org.bukkit.entity.LivingEntity) boostedEntity.getBukkitEntity() : null;
+    }
+    // Paper end
 }
