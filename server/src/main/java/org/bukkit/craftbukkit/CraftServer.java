@@ -2575,5 +2575,10 @@ public final class CraftServer implements Server {
         commandMap.registerServerAliases();
         return true;
     }
+
+    @Override
+    public boolean suggestPlayerNamesWhenNullTabCompletions() {
+        return io.papermc.paper.configuration.GlobalConfiguration.get().commands.suggestPlayerNamesWhenNullTabCompletions;
+    }
     // Paper end
 }
