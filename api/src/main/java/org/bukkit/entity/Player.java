@@ -310,15 +310,15 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
 
     /**
      * Saves the players current location, health, inventory, motion, and
-     * other information into the username.dat file, in the world/player
-     * folder
+     * other information into the &lt;uuid&gt;.dat file, in the
+     * &lt;level-name&gt;/playerdata/ folder.
      */
     public void saveData();
 
     /**
      * Loads the players current location, health, inventory, motion, and
-     * other information from the username.dat file, in the world/player
-     * folder.
+     * other information from the &lt;uuid&gt;.dat file, in the
+     * &lt;level-name&gt;/playerdata/ folder.
      * <p>
      * Note: This will overwrite the players current inventory, health,
      * motion, etc, with the state from the saved dat file.
@@ -774,7 +774,7 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *
      * Use supplied alternative character to the section symbol to represent legacy color codes.
      *
-     * @param alternateChar Alternate symbol such as '&'
+     * @param alternateChar Alternate symbol such as '&amp;'
      * @param message The message to send
      * @deprecated use {@link #sendActionBar(Component)}
      */

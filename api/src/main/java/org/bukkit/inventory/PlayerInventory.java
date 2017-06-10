@@ -158,7 +158,7 @@ public interface PlayerInventory extends Inventory {
     public void setBoots(@Nullable ItemStack boots);
 
     /**
-     * Gets a copy of the item the player is currently holding
+     * Gets the item the player is currently holding
      * in their main hand.
      *
      * @return the currently held item
@@ -174,7 +174,7 @@ public interface PlayerInventory extends Inventory {
     void setItemInMainHand(@Nullable ItemStack item);
 
     /**
-     * Gets a copy of the item the player is currently holding
+     * Gets the item the player is currently holding
      * in their off hand.
      *
      * @return the currently held item
@@ -190,7 +190,7 @@ public interface PlayerInventory extends Inventory {
     void setItemInOffHand(@Nullable ItemStack item);
 
     /**
-     * Gets a copy of the item the player is currently holding
+     * Gets the item the player is currently holding
      *
      * @return the currently held item
      * @see #getItemInMainHand()

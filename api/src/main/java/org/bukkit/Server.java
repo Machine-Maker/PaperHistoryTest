@@ -509,13 +509,10 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
      * </ul>
      * <p>
      * <b>Note:</b> If set to 0, {@link SpawnCategory} mobs spawning will be disabled.
-     * <p>
-     * Minecraft default: 1.
-     * <br>
-     * <b>Note: </b> the {@link SpawnCategory#MISC} are not consider.
      *
      * @param spawnCategory the category of spawn
      * @return the default ticks per {@link SpawnCategory} mobs spawn value
+     * @throws IllegalArgumentException if the category is {@link SpawnCategory#MISC}
      */
     public int getTicksPerSpawns(@NotNull SpawnCategory spawnCategory);
 
@@ -1126,6 +1123,8 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
 
     /**
      * Gets every player that has ever played on this server.
+     * <p>
+     * <b>This method can be expensive as it loads all the player data files from the disk.</b>
      *
      * @return an array containing all previous players
      */

@@ -1331,6 +1331,8 @@ public final class Bukkit {
 
     /**
      * Gets every player that has ever played on this server.
+     * <p>
+     * <b>This method can be expensive as it loads all the player data files from the disk.</b>
      *
      * @return an array containing all previous players
      */
