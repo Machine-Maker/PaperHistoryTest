@@ -39,6 +39,8 @@ dependencies {
     apiAndDocs("net.kyori:adventure-text-serializer-legacy")
     apiAndDocs("net.kyori:adventure-text-serializer-plain")
     apiAndDocs("net.kyori:adventure-text-logger-slf4j")
+    api("org.apache.logging.log4j:log4j-api:2.17.1")
+    api("org.slf4j:slf4j-api:1.8.0-beta4")
 
     implementation("org.ow2.asm:asm:9.2")
     implementation("org.ow2.asm:asm-commons:9.2")
