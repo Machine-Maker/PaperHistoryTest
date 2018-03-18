@@ -2298,6 +2298,20 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *         was {@link org.bukkit.event.player.PlayerResourcePackStatusEvent.Status#SUCCESSFULLY_LOADED}
      */
     boolean hasResourcePack();
+
+    /**
+     * Gets a copy of this players profile
+     * @return The players profile object
+     */
+    @NotNull
+    com.destroystokyo.paper.profile.PlayerProfile getPlayerProfile();
+
+    /**
+     * Changes the PlayerProfile for this player. This will cause this player
+     * to be reregistered to all clients that can currently see this player
+     * @param profile The new profile to use
+     */
+    void setPlayerProfile(@NotNull com.destroystokyo.paper.profile.PlayerProfile profile);
     // Paper end
 
     // Spigot start
