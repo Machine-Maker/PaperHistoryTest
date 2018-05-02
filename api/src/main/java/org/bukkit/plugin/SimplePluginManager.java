@@ -504,6 +504,21 @@ public final class SimplePluginManager implements PluginManager {
         }
     }
 
+    // Paper start
+    /**
+     * This method is no longer useful as upstream has
+     * made it so plugin classloaders are always closed on disable.
+     * Use {@link #disablePlugins()} instead.
+     *
+     * @param closeClassloaders unused
+     * @deprecated Classloader is always closed by upstream now.
+     */
+    @Deprecated(forRemoval = true)
+    public void disablePlugins(boolean closeClassloaders) {
+        this.disablePlugins();
+    }
+    // Paper end
+
     @Override
     public void disablePlugin(@NotNull final Plugin plugin) {
         if (plugin.isEnabled()) {

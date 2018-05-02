@@ -366,6 +366,7 @@ public final class JavaPluginLoader implements PluginLoader {
                     loader.close();
                 } catch (IOException ex) {
                     //
+                    this.server.getLogger().log(Level.WARNING, "Error closing the PluginClassLoader for '" + plugin.getDescription().getFullName() + "'", ex); // Paper - log exception
                 }
             }
         }

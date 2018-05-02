@@ -77,4 +77,21 @@ public interface PluginLoader {
      * @param plugin Plugin to disable
      */
     public void disablePlugin(@NotNull Plugin plugin);
+
+    // Paper start - close Classloader on disable
+    /**
+     * This method is no longer useful as upstream has
+     * made it so plugin classloaders are always closed on disable.
+     * Use {@link #disablePlugin(Plugin)} instead.
+     *
+     * @param plugin Plugin to disable
+     * @param closeClassloader unused
+     * @deprecated Classloader is always closed by upstream now.
+     */
+    @Deprecated(forRemoval = true)
+    // provide default to allow other PluginLoader implementations to work
+    default public void disablePlugin(@NotNull Plugin plugin, boolean closeClassloader) {
+        disablePlugin(plugin);
+    }
+    // Paper end - close Classloader on disable
 }
