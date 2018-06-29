@@ -307,7 +307,9 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      *
      * @return the item being used by the player, or null if they are not using
      * an item
+     * @deprecated Deprecated in favor of {@link LivingEntity#getActiveItem()}
      */
+    @Deprecated // Paper
     @Nullable
     public ItemStack getItemInUse();
 

@@ -649,5 +649,42 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
      * @param delay Delay in ticks
      */
     void setShieldBlockingDelay(int delay);
+
+    /**
+     * Get's the item being actively "used" or consumed.
+     * @return The item
+     */
+    @NotNull
+    org.bukkit.inventory.ItemStack getActiveItem();
+
+    /**
+     * Get's remaining time a player needs to keep hands raised with an item to finish using it.
+     * @return Remaining ticks to use the item
+     */
+    int getItemUseRemainingTime();
+
+    /**
+     * Get how long the players hands have been raised (Charging Bow attack, using a potion, etc)
+     *
+     * @return Get how long the players hands have been raised (Charging Bow attack, using a potion, etc)
+     */
+    int getHandRaisedTime();
+
+    /**
+     * Whether or not this entity is using or charging an attack (Bow pulled back, drinking potion, eating food)
+     *
+     * @return Whether or not this entity is using or charging an attack (Bow pulled back, drinking potion, eating food)
+     */
+    boolean isHandRaised();
+
+    /**
+     * Gets the hand raised by this living entity. Will be either
+     * {@link org.bukkit.inventory.EquipmentSlot#HAND} or
+     * {@link org.bukkit.inventory.EquipmentSlot#OFF_HAND}.
+     *
+     * @return the hand raised
+     */
+    @NotNull
+    org.bukkit.inventory.EquipmentSlot getHandRaised();
     // Paper end
 }
