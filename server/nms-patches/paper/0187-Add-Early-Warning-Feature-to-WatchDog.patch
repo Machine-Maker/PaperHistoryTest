@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: miclebrick <miclebrick@outlook.com>
+Date: Wed, 8 Aug 2018 15:30:52 -0400
+Subject: [PATCH] Add Early Warning Feature to WatchDog
+
+Detect when the server has been hung for a long duration, and start printing
+thread dumps at an interval until the point of crash.
+
+This will help diagnose what was going on in that time before the crash.
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index e7cd33be3c74ca79f9f0fecea010081b24a14417..ac36f50fd721b0087248bfb733fe4ea78a115778 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1061,6 +1061,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             this.updateStatusIcon(this.status);
+ 
+             // Spigot start
++            org.spigotmc.WatchdogThread.hasStarted = true; // Paper
+             Arrays.fill( recentTps, 20 );
+             long start = System.nanoTime(), curTime, tickSection = start; // Paper - Further improve server tick loop
+             lastTick = start - TICK_TIME; // Paper
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index 9411e5664c0067f976018fe19b1e74032f24bd5f..1e7bccbf551043d822edb1983fa039a4fdb27602 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -202,6 +202,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         // Paper start
+         paperConfigurations.initializeGlobalConfiguration();
+         paperConfigurations.initializeWorldDefaultsConfiguration();
++        org.spigotmc.WatchdogThread.doStart(org.spigotmc.SpigotConfig.timeoutTime, org.spigotmc.SpigotConfig.restartOnCrash);
+         io.papermc.paper.command.PaperCommands.registerCommands(this);
+         com.destroystokyo.paper.Metrics.PaperMetrics.startMetrics();
+         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
