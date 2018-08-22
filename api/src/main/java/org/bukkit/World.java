@@ -260,6 +260,17 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
     public default Chunk getChunkAt(long chunkKey) {
         return getChunkAt((int) chunkKey, (int) (chunkKey >> 32));
     }
+
+    /**
+     * Checks if a {@link Chunk} has been generated at the specified chunk key,
+     * which is the X and Z packed into a long.
+     *
+     * @param chunkKey The Chunk Key to look up the chunk by
+     * @return true if the chunk has been generated, otherwise false
+     */
+    public default boolean isChunkGenerated(long chunkKey) {
+        return isChunkGenerated((int) chunkKey, (int) (chunkKey >> 32));
+    }
     // Paper end
 
     /**
