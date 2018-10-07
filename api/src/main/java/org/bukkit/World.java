@@ -1796,6 +1796,16 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
      */
     public void setFullTime(long time);
 
+    // Paper start
+
+    /**
+     * Check if it is currently daytime in this world
+     *
+     * @return True if it is daytime
+     */
+    public boolean isDayTime();
+    // Paper end
+
     /**
      * Gets the full in-game time on this world since the world generation
      *
