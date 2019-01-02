@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Zach Brown <zach@zachbr.io>
+Date: Wed, 2 Jan 2019 00:35:43 -0600
+Subject: [PATCH] Add APIs to replace OfflinePlayer#getLastPlayed
+
+Currently OfflinePlayer#getLastPlayed could more accurately be described
+as "OfflinePlayer#getLastTimeTheirDataWasSaved".
+
+The API doc says it should return the last time the server "witnessed"
+the player, whilst also saying it should return the last time they
+logged in. The current implementation does neither.
+
+Given this interesting contradiction in the API documentation and the
+current defacto implementation, I've elected to deprecate (with no
+intent to remove) and replace it with two new methods, clearly named and
+documented as to their purpose.
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+index 4ee0f22ed25847df3dab6df1e3f03e45c515fb48..289d822d515764cc8b12e80436c4f96fbeba2b1f 100644
+--- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
++++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+@@ -230,6 +230,7 @@ public class ServerPlayer extends Player {
+     public int latency;
+     public boolean wonGame;
+     private int containerUpdateDelay; // Paper
++    public long loginTime; // Paper
+     // Paper start - cancellable death event
+     public boolean queueHealthUpdatePacket = false;
+     public net.minecraft.network.protocol.game.ClientboundSetHealthPacket queuedHealthUpdatePacket;
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index 8afdcee23d24ff6fbd06e2a37f342a0d7a09a87c..b90c2719a7b59a97270bc8f197f086b33bd715cd 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -178,6 +178,7 @@ public abstract class PlayerList {
+     }
+ 
+     public void placeNewPlayer(Connection connection, ServerPlayer player) {
++        player.loginTime = System.currentTimeMillis(); // Paper
+         GameProfile gameprofile = player.getGameProfile();
+         GameProfileCache usercache = this.server.getProfileCache();
+         Optional<GameProfile> optional = usercache.get(gameprofile.getId());
