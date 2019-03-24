@@ -7,6 +7,7 @@ import java.util.List; // Paper
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.UndefinedNullability;
 import org.bukkit.Utility;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
@@ -67,6 +68,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
      * @param damage durability / damage
      * @deprecated see {@link #setDurability(short)}
      */
+    @Deprecated // Paper
     public ItemStack(@NotNull final Material type, final int amount, final short damage) {
         this(type, amount, damage, null);
     }
@@ -168,8 +170,10 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
      * Gets the MaterialData for this stack of items
      *
      * @return MaterialData for this item
+     * @deprecated cast to {@link org.bukkit.inventory.meta.BlockDataMeta} and use {@link org.bukkit.inventory.meta.BlockDataMeta#getBlockData(Material)}
      */
     @Nullable
+    @Deprecated // Paper
     public MaterialData getData() {
         Material mat = Bukkit.getUnsafe().toLegacy(getType());
         if (data == null && mat != null && mat.getData() != null) {
@@ -183,7 +187,9 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
      * Sets the MaterialData for this stack of items
      *
      * @param data New MaterialData for this item
+     * @deprecated cast to {@link org.bukkit.inventory.meta.BlockDataMeta} and use {@link org.bukkit.inventory.meta.BlockDataMeta#setBlockData(org.bukkit.block.data.BlockData)}
      */
+    @Deprecated // Paper
     public void setData(@Nullable MaterialData data) {
         if (data == null) {
             this.data = data;
@@ -545,7 +551,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
      *
      * @return a copy of the current ItemStack's ItemData
      */
-    @Nullable
+    @UndefinedNullability // Paper
     public ItemMeta getItemMeta() {
         return this.meta == null ? Bukkit.getItemFactory().getItemMeta(this.type) : this.meta.clone();
     }

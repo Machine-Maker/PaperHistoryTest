@@ -39,12 +39,14 @@ public final class NamespacedKey implements net.kyori.adventure.key.Key, com.des
 
     /**
      * Create a key in a specific namespace.
+     * <p>
+     * For most plugin related code, you should prefer using the
+     * {@link NamespacedKey#NamespacedKey(Plugin, String)} constructor.
      *
      * @param namespace namespace
      * @param key key
-     * @deprecated should never be used by plugins, for internal use only!!
+     * @see #NamespacedKey(Plugin, String)
      */
-    @Deprecated
     public NamespacedKey(@NotNull String namespace, @NotNull String key) {
         Preconditions.checkArgument(namespace != null && VALID_NAMESPACE.matcher(namespace).matches(), "Invalid namespace. Must be [a-z0-9._-]: %s", namespace);
         Preconditions.checkArgument(key != null && VALID_KEY.matcher(key).matches(), "Invalid key. Must be [a-z0-9/._-]: %s", key);

@@ -16,9 +16,8 @@ import org.jetbrains.annotations.NotNull;
  * range.
  *
  * @see Player#showEntity(org.bukkit.plugin.Plugin, org.bukkit.entity.Entity)
- * @deprecated draft API
  */
-@Deprecated
+@org.jetbrains.annotations.ApiStatus.Experimental // Paper
 @Warning(false)
 public class PlayerShowEntityEvent extends PlayerEvent {
 

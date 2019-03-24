@@ -511,6 +511,6 @@ public interface EntityEquipment {
      *
      * @return the entity this EntityEquipment belongs to
      */
-    @Nullable
+    @NotNull // Paper
     Entity getHolder();
 }

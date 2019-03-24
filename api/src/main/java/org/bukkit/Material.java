@@ -4142,11 +4142,11 @@ public enum Material implements Keyed {
     }
 
     /**
-     * Do not use for any reason.
+     * Checks if this constant is a legacy material.
      *
      * @return legacy status
      */
-    @Deprecated
+    // @Deprecated // Paper - this is useful, don't deprecate
     public boolean isLegacy() {
         return legacy;
     }
@@ -4217,8 +4217,10 @@ public enum Material implements Keyed {
      * Gets the MaterialData class associated with this Material
      *
      * @return MaterialData associated with this Material
+     * @deprecated use {@link #createBlockData()}
      */
     @NotNull
+    @Deprecated // Paper
     public Class<? extends MaterialData> getData() {
         Preconditions.checkArgument(legacy, "Cannot get data class of Modern Material");
         return ctor.getDeclaringClass();

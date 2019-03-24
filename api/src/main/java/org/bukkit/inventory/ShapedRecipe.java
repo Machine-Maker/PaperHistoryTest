@@ -95,8 +95,10 @@ public class ShapedRecipe implements Recipe, Keyed {
      * @param key The character that represents the ingredient in the shape.
      * @param ingredient The ingredient.
      * @return The changed recipe, so you can chain calls.
+     * @deprecated use {@link #setIngredient(char, RecipeChoice)}
      */
     @NotNull
+    @Deprecated // Paper
     public ShapedRecipe setIngredient(char key, @NotNull MaterialData ingredient) {
         return setIngredient(key, ingredient.getItemType(), ingredient.getData());
     }

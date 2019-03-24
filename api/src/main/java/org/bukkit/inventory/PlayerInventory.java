@@ -14,8 +14,7 @@ public interface PlayerInventory extends Inventory {
      *
      * @return All the ItemStacks from the armor slots. Individual items can be null.
      */
-    @NotNull
-    public ItemStack[] getArmorContents();
+    public @Nullable ItemStack @NotNull [] getArmorContents(); // Paper - make array elements nullable instead array
 
     /**
      * Get all additional ItemStacks stored in this inventory.
@@ -26,8 +25,7 @@ public interface PlayerInventory extends Inventory {
      *
      * @return All additional ItemStacks. Individual items can be null.
      */
-    @NotNull
-    public ItemStack[] getExtraContents();
+    public @Nullable ItemStack @NotNull [] getExtraContents(); // Paper - make array elements nullable instead array
 
     /**
      * Return the ItemStack from the helmet slot
@@ -104,9 +102,9 @@ public interface PlayerInventory extends Inventory {
      *
      * @param slot the slot to get the ItemStack
      *
-     * @return the ItemStack in the given slot or null if there is not one
+     * @return the ItemStack in the given slot
      */
-    @Nullable
+    @NotNull // Paper
     public ItemStack getItem(@NotNull EquipmentSlot slot);
 
     /**

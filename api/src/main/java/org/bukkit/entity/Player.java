@@ -1375,9 +1375,8 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *
      * @param plugin Plugin that wants to hide the entity
      * @param entity Entity to hide
-     * @deprecated draft API
      */
-    @Deprecated
+    @org.jetbrains.annotations.ApiStatus.Experimental // Paper
     public void hideEntity(@NotNull Plugin plugin, @NotNull Entity entity);
 
     /**
@@ -1387,9 +1386,8 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      *
      * @param plugin Plugin that wants to show the entity
      * @param entity Entity to show
-     * @deprecated draft API
      */
-    @Deprecated
+    @org.jetbrains.annotations.ApiStatus.Experimental // Paper
     public void showEntity(@NotNull Plugin plugin, @NotNull Entity entity);
 
     /**
@@ -1398,9 +1396,8 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @param entity Entity to check
      * @return True if the provided entity is not being hidden from this
      *     player
-     * @deprecated draft API
      */
-    @Deprecated
+    @org.jetbrains.annotations.ApiStatus.Experimental // Paper
     public boolean canSee(@NotNull Entity entity);
 
     /**

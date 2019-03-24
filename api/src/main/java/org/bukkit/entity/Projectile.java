@@ -29,7 +29,9 @@ public interface Projectile extends Entity {
      * If a small fireball does not bounce it will set the target on fire.
      *
      * @return true if it should bounce.
+     * @deprecated Does not do anything
      */
+    @Deprecated(forRemoval = true) // Paper
     public boolean doesBounce();
 
     /**
@@ -37,6 +39,8 @@ public interface Projectile extends Entity {
      * something.
      *
      * @param doesBounce whether or not it should bounce.
+     * @deprecated Does not do anything
      */
+    @Deprecated(forRemoval = true) // Paper
     public void setBounce(boolean doesBounce);
 }

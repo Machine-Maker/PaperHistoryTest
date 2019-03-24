@@ -430,9 +430,8 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
      * @param z Z-coordinate of the chunk
      * @return Whether the chunk was actually refreshed
      *
-     * @deprecated This method is not guaranteed to work suitably across all client implementations.
      */
-    @Deprecated
+    //@Deprecated // Paper
     public boolean refreshChunk(int x, int z);
 
     /**
@@ -2145,8 +2144,10 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
      * @return The spawned {@link FallingBlock} instance
      * @throws IllegalArgumentException if {@link Location} or {@link
      *     MaterialData} are null or {@link Material} of the {@link MaterialData} is not a block
+     * @deprecated use {@link #spawnFallingBlock(Location, BlockData)}
      */
     @NotNull
+    @Deprecated // Paper
     public FallingBlock spawnFallingBlock(@NotNull Location location, @NotNull MaterialData data) throws IllegalArgumentException;
 
     /**

@@ -101,7 +101,9 @@ public interface Minecart extends Vehicle {
      * Passing a null value will set the minecart to have no display block.
      *
      * @param material the material to set as display block.
+     * @deprecated use {@link #setDisplayBlockData(BlockData)}
      */
+    @Deprecated // Paper
     public void setDisplayBlock(@Nullable MaterialData material);
 
     /**
@@ -109,8 +111,10 @@ public interface Minecart extends Vehicle {
      * This function will return the type AIR if none is set.
      *
      * @return the block displayed by this minecart.
+     * @deprecated use {@link #getDisplayBlockData()}
      */
     @NotNull
+    @Deprecated // Paper
     public MaterialData getDisplayBlock();
 
     /**

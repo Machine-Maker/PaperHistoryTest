@@ -998,10 +998,8 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
      * @param name the name the player to retrieve
      * @return an offline player
      * @see #getOfflinePlayer(java.util.UUID)
-     * @deprecated Persistent storage of users should be by UUID as names are no longer
-     *             unique past a single session.
      */
-    @Deprecated
+    // @Deprecated // Paper
     @NotNull
     public OfflinePlayer getOfflinePlayer(@NotNull String name);
 
@@ -1467,7 +1465,7 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
      *
      * @return the scoreboard manager or null if no worlds are loaded.
      */
-    @Nullable
+    @NotNull // Paper
     ScoreboardManager getScoreboardManager();
 
     /**

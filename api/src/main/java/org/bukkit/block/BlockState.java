@@ -35,8 +35,10 @@ public interface BlockState extends Metadatable {
      * Gets the metadata for this block state.
      *
      * @return block specific metadata
+     * @deprecated use {@link #getBlockData()}
      */
     @NotNull
+    @Deprecated // Paper
     MaterialData getData();
 
     /**
@@ -131,7 +133,9 @@ public interface BlockState extends Metadatable {
      * Sets the metadata for this block state.
      *
      * @param data New block specific metadata
+     * @deprecated use {@link #setBlockData(BlockData)}
      */
+    @Deprecated // Paper
     void setData(@NotNull MaterialData data);
 
     /**
