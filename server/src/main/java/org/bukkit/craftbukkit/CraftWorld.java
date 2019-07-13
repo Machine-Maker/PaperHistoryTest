@@ -1956,6 +1956,34 @@ public class CraftWorld extends CraftRegionAccessor implements World {
     public DragonBattle getEnderDragonBattle() {
         return (this.getHandle().dragonFight() == null) ? null : new CraftDragonBattle(this.getHandle().dragonFight());
     }
+    // Paper start
+    @Override
+    public java.util.concurrent.CompletableFuture<Chunk> getChunkAtAsync(int x, int z, boolean gen, boolean urgent) {
+        if (Bukkit.isPrimaryThread()) {
+            net.minecraft.world.level.chunk.LevelChunk immediate = this.world.getChunkSource().getChunkAtIfLoadedImmediately(x, z);
+            if (immediate != null) {
+                return java.util.concurrent.CompletableFuture.completedFuture(immediate.getBukkitChunk());
+            }
+        } else {
+            java.util.concurrent.CompletableFuture<Chunk> future = new java.util.concurrent.CompletableFuture<Chunk>();
+            world.getServer().execute(() -> {
+                getChunkAtAsync(x, z, gen, urgent).whenComplete((chunk, err) -> {
+                    if (err != null) {
+                        future.completeExceptionally(err);
+                    } else {
+                        future.complete(chunk);
+                    }
+                });
+            });
+            return future;
+        }
+
+        return this.world.getChunkSource().getChunkAtAsynchronously(x, z, gen, urgent).thenComposeAsync((either) -> {
+            net.minecraft.world.level.chunk.LevelChunk chunk = (net.minecraft.world.level.chunk.LevelChunk) either.left().orElse(null);
+            return java.util.concurrent.CompletableFuture.completedFuture(chunk == null ? null : chunk.getBukkitChunk());
+        }, net.minecraft.server.MinecraftServer.getServer());
+    }
+    // Paper end
 
     @Override
     public PersistentDataContainer getPersistentDataContainer() {
