@@ -801,5 +801,25 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
      */
     @NotNull
     org.bukkit.inventory.EquipmentSlot getHandRaised();
+
+    /**
+     * Get entity jump state.
+     * <p>
+     * Jump state will be true when the entity has been marked to jump.
+     *
+     * @return entity jump state.
+     */
+    boolean isJumping();
+
+    /**
+     * Set entity jump state
+     * <p>
+     * Setting to true will mark the entity to jump.
+     * <p>
+     * Setting to false will unmark the entity to jump but will not stop a jump already in-progress.
+     *
+     * @param jumping entity jump state
+     */
+    void setJumping(boolean jumping);
     // Paper end
 }
