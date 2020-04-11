@@ -2077,6 +2077,12 @@ public class CraftWorld extends CraftRegionAccessor implements World {
             return future;
         }
 
+        // Paper start - Chunk priority
+        if (!urgent) {
+            // If not urgent, at least use a slightly boosted priority
+            world.getChunkSource().markHighPriority(new ChunkPos(x, z), 1);
+        }
+        // Paper end
         return this.world.getChunkSource().getChunkAtAsynchronously(x, z, gen, urgent).thenComposeAsync((either) -> {
             net.minecraft.world.level.chunk.LevelChunk chunk = (net.minecraft.world.level.chunk.LevelChunk) either.left().orElse(null);
             if (chunk != null) addTicket(x, z); // Paper
