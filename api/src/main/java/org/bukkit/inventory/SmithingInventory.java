@@ -30,4 +30,44 @@ public interface SmithingInventory extends Inventory {
      */
     @Nullable
     Recipe getRecipe();
+
+    // Paper start
+    /**
+     * Gets the input equipment (first slot).
+     *
+     * @return input equipment item
+     */
+    @Nullable
+    default ItemStack getInputEquipment() {
+        return getItem(0);
+    }
+
+    /**
+     * Sets the input equipment (first slot).
+     *
+     * @param itemStack item to set
+     */
+    default void setInputEquipment(@Nullable ItemStack itemStack) {
+        setItem(0, itemStack);
+    }
+
+    /**
+     * Gets the input mineral (second slot).
+     *
+     * @return input mineral item
+     */
+    @Nullable
+    default ItemStack getInputMineral() {
+        return getItem(1);
+    }
+
+    /**
+     * Sets the input mineral (second slot).
+     *
+     * @param itemStack item to set
+     */
+    default void setInputMineral(@Nullable ItemStack itemStack) {
+        setItem(1, itemStack);
+    }
+    // Paper end
 }
