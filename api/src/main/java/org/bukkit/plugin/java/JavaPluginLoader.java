@@ -51,6 +51,7 @@ import org.yaml.snakeyaml.error.YAMLException;
  */
 public final class JavaPluginLoader implements PluginLoader {
     final Server server;
+    private static final boolean DISABLE_CLASS_PRIORITIZATION = Boolean.getBoolean("Paper.DisableClassPrioritization"); // Paper
     private final Pattern[] fileFilters = new Pattern[]{Pattern.compile("\\.jar$")};
     private final Map<String, java.util.concurrent.locks.ReentrantReadWriteLock> classLoadLock = new java.util.HashMap<String, java.util.concurrent.locks.ReentrantReadWriteLock>(); // Paper
     private final Map<String, Integer> classLoadLockCount = new java.util.HashMap<String, Integer>(); // Paper
@@ -203,6 +204,11 @@ public final class JavaPluginLoader implements PluginLoader {
 
     @Nullable
     Class<?> getClassByName(final String name, boolean resolve, PluginDescriptionFile description) {
+        // Paper start - prioritize self
+        return getClassByName(name, resolve, description, null);
+    }
+    Class<?> getClassByName(final String name, boolean resolve, PluginDescriptionFile description, PluginClassLoader requester) {
+        // Paper end
         // Paper start - make MT safe
         java.util.concurrent.locks.ReentrantReadWriteLock lock;
         synchronized (classLoadLock) {
@@ -210,6 +216,13 @@ public final class JavaPluginLoader implements PluginLoader {
             classLoadLockCount.compute(name, (x, prev) -> prev != null ? prev + 1 : 1);
         }
         lock.writeLock().lock();try {
+            // Paper start - prioritize self
+            if (!DISABLE_CLASS_PRIORITIZATION && requester != null) {
+                try {
+                return requester.loadClass0(name, false, false, ((SimplePluginManager) server.getPluginManager()).isTransitiveDepend(description, requester.getDescription()));
+                } catch (ClassNotFoundException cnfe) {}
+            }
+            // Paper end
         // Paper end
         for (PluginClassLoader loader : loaders) {
             try {

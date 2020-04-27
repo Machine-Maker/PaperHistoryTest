@@ -33,7 +33,7 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
     public JavaPlugin getPlugin() { return plugin; } // Spigot
     private final JavaPluginLoader loader;
     private final Map<String, Class<?>> classes = new ConcurrentHashMap<String, Class<?>>();
-    private final PluginDescriptionFile description;
+    private final PluginDescriptionFile description; PluginDescriptionFile getDescription() { return description; } // Paper
     private final File dataFolder;
     private final File file;
     private final JarFile jar;
@@ -123,7 +123,7 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
 
         if (checkGlobal) {
             // This ignores the libraries of other plugins, unless they are transitive dependencies.
-            Class<?> result = loader.getClassByName(name, resolve, description);
+            Class<?> result = loader.getClassByName(name, resolve, description, this);  // Paper - prioritize self
 
             if (result != null) {
                 // If the class was loaded from a library instead of a PluginClassLoader, we can assume that its associated plugin is a transitive dependency and can therefore skip this check.
