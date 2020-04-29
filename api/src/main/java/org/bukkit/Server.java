@@ -1589,6 +1589,22 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
     @NotNull
     public ChunkGenerator.ChunkData createChunkData(@NotNull World world);
 
+    // Paper start
+    /**
+     * Create a ChunkData for use in a generator, that is populated by the vanilla generator for that world.
+     *
+     * @param world the world to create the ChunkData for
+     * @param x the x coordinate of the chunk
+     * @param z the z coordinate of the chunk
+     * @return a new ChunkData for the world
+     * @deprecated The new multi-stage worldgen API allows a similar effect by overriding all of the "shouldGenerate..." methods to
+     * return true, and then modifying the chunkdata in a later stage such as surface or bedrock generation.
+     */
+    @NotNull
+    @Deprecated(forRemoval = true)
+    ChunkGenerator.ChunkData createVanillaChunkData(@NotNull World world, int x, int z);
+    // Paper end
+
     /**
      * Creates a boss bar instance to display to players. The progress
      * defaults to 1.0
