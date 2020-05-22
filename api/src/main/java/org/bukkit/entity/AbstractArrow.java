@@ -144,6 +144,28 @@ public interface AbstractArrow extends Projectile {
 
     // Paper start
     /**
+     * Gets the ItemStack for this arrow.
+     *
+     * @return The ItemStack, as if a player picked up the arrow
+     */
+    @NotNull
+    org.bukkit.inventory.ItemStack getItemStack();
+
+    /**
+     * Sets this arrow to "noclip" status.
+     *
+     * @param noPhysics true to set "noclip"
+     */
+    void setNoPhysics(boolean noPhysics);
+
+    /**
+     * Gets if this arrow has "noclip".
+     *
+     * @return true if noclip is active
+     */
+    boolean hasNoPhysics();
+
+    /**
      * Gets the {@link PickupRule} for this arrow.
      *
      * <p>This is generally {@link PickupRule#ALLOWED} only if the arrow was
