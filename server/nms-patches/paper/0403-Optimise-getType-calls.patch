@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
+Date: Wed, 3 Jun 2020 11:37:13 -0700
+Subject: [PATCH] Optimise getType calls
+
+Remove the map lookup for converting from Block->Bukkit Material
+
+diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockState.java b/src/main/java/net/minecraft/world/level/block/state/BlockState.java
+index 76133c77e8ebce7c9e5402e3e7cd50b30aa1c2e0..348a91a760bd728f8e732e1a35c86ab75d8fc0f1 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/BlockState.java
++++ b/src/main/java/net/minecraft/world/level/block/state/BlockState.java
+@@ -10,6 +10,17 @@ import net.minecraft.world.level.block.state.properties.Property;
+ public class BlockState extends BlockBehaviour.BlockStateBase {
+     public static final Codec<BlockState> CODEC = codec(Registry.BLOCK.byNameCodec(), Block::defaultBlockState).stable();
+ 
++    // Paper start - optimise getType calls
++    org.bukkit.Material cachedMaterial;
++
++    public final org.bukkit.Material getBukkitMaterial() {
++        if (this.cachedMaterial == null) {
++            this.cachedMaterial = org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(this.getBlock());
++        }
++
++        return this.cachedMaterial;
++    }
++    // Paper end - optimise getType calls
+     public BlockState(Block block, ImmutableMap<Property<?>, Comparable<?>> propertyMap, MapCodec<BlockState> codec) {
+         super(block, propertyMap, codec);
+     }
