@@ -229,6 +229,15 @@ public interface Block extends Metadatable, net.kyori.adventure.translation.Tran
     public static int getBlockKeyZ(long packed) {
         return (int) ((packed << 10) >> 37);
     }
+
+    /**
+     * Checks if the itemstack is a valid tool to
+     * break the block with
+     *
+     * @param itemStack The (tool) itemstack
+     * @return whether the block will drop items
+     */
+    boolean isValidTool(@NotNull ItemStack itemStack);
     // Paper End
 
     /**
