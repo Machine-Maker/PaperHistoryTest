@@ -450,7 +450,7 @@ public abstract class InventoryView {
     /**
      * Get the title of this inventory window.
      *
-     * @return The title.
+     * @return The title or empty string when title is {@code null}. <!-- Paper -->
      */
     @NotNull
     public /*abstract*/ net.kyori.adventure.text.Component title() {
