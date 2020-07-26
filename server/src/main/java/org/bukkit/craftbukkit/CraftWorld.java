@@ -2172,6 +2172,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
             lightning.moveTo( loc.getX(), loc.getY(), loc.getZ() );
             lightning.visualOnly = true;
             lightning.isSilent = isSilent;
+            world.strikeLightning( lightning );
             return (LightningStrike) lightning.getBukkitEntity();
         }
     };
