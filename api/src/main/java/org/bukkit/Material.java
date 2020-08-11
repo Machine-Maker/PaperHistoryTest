@@ -109,7 +109,7 @@ import org.jetbrains.annotations.Nullable;
  * An enum of all material IDs accepted by the official server and client
  */
 @SuppressWarnings({"DeprecatedIsStillUsed", "deprecation"}) // Paper
-public enum Material implements Keyed {
+public enum Material implements Keyed, net.kyori.adventure.translation.Translatable { // Paper
     //<editor-fold desc="Materials" defaultstate="collapsed">
     AIR(9648, 0),
     STONE(22948),
@@ -4126,6 +4126,23 @@ public enum Material implements Keyed {
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Return the translation key for the Material, so the client can translate it into the active
+     * locale when using a TranslatableComponent.
+     * @return the translation key
+     * @deprecated use {@link #translationKey()}
+     */
+    @NotNull
+    @Deprecated
+    public String getTranslationKey() {
+        return this.translationKey();
+    }
+
+    @Override
+    public @NotNull String translationKey() {
+        return Bukkit.getUnsafe().getTranslationKey(this);
     }
     // Paper end
 

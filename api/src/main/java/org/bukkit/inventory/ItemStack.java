@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * use this class to encapsulate Materials for which {@link Material#isItem()}
  * returns false.</b>
  */
-public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyori.adventure.text.event.HoverEventSource<net.kyori.adventure.text.event.HoverEvent.ShowItem> { // Paper
+public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyori.adventure.text.event.HoverEventSource<net.kyori.adventure.text.event.HoverEvent.ShowItem>, net.kyori.adventure.translation.Translatable { // Paper
     private Material type = Material.AIR;
     private int amount = 0;
     private MaterialData data = null;
@@ -857,6 +857,31 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
     public boolean hasItemFlag(@NotNull ItemFlag flag) {
         ItemMeta itemMeta = getItemMeta();
         return itemMeta != null && itemMeta.hasItemFlag(flag);
+    }
+
+    /**
+     * Gets the translation key for this itemstack.
+     * This is not the same as getting the translation key
+     * for the material of this itemstack.
+     *
+     * @return the translation key
+     * @deprecated use {@link #translationKey()}
+     */
+    @NotNull
+    @Deprecated
+    public String getTranslationKey() {
+        return this.translationKey();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This is not the same as getting the translation key
+     * for the material of this itemstack.
+     */
+    @Override
+    public @NotNull String translationKey() {
+        return Bukkit.getUnsafe().getTranslationKey(this);
     }
     // Paper end
 }

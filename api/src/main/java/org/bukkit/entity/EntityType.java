@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public enum EntityType implements Keyed {
+public enum EntityType implements Keyed, net.kyori.adventure.translation.Translatable { // Paper - translatable
 
     // These strings MUST match the strings in nms.EntityTypes and are case sensitive.
     /**
@@ -424,4 +424,27 @@ public enum EntityType implements Keyed {
     public boolean isAlive() {
         return living;
     }
+    // Paper start
+    /**
+     * Return the translation key for the EntityType, so the client can translate it into the active
+     * locale when using a TranslatableComponent.<br>
+     * This is <code>null</code>, when the EntityType isn't known to NMS (custom entities)
+     * @return the translation key
+     * @deprecated use {@link #translationKey()}
+     */
+    @Deprecated
+    @Nullable
+    public String getTranslationKey() {
+        return org.bukkit.Bukkit.getUnsafe().getTranslationKey(this);
+    }
+
+    /**
+     * @throws IllegalArgumentException if the entity does not have a translation key (is probably a custom entity)
+     */
+    @Override
+    public @NotNull String translationKey() {
+        Preconditions.checkArgument(this != UNKNOWN, "UNKNOWN entities do not have translation keys");
+        return org.bukkit.Bukkit.getUnsafe().getTranslationKey(this);
+    }
+    // Paper end
 }
