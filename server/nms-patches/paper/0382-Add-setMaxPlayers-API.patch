@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mariell Hoversholm <proximyst@proximyst.com>
+Date: Sat, 22 Aug 2020 23:59:30 +0200
+Subject: [PATCH] Add #setMaxPlayers API
+
+
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index b2cdfdea19adcef56c9d9729eb0f9564907acf7f..db3381ed5d07d810a70efa8743d0f8b77329316f 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -147,7 +147,7 @@ public abstract class PlayerList {
+     public final PlayerDataStorage playerIo;
+     private boolean doWhiteList;
+     private final RegistryAccess.Frozen registryHolder;
+-    protected final int maxPlayers;
++    protected int maxPlayers; public final void setMaxPlayers(int maxPlayers) { this.maxPlayers = maxPlayers; } // Paper - remove final and add setter
+     private int viewDistance;
+     private int simulationDistance;
+     private boolean allowCheatsForAllPlayers;
