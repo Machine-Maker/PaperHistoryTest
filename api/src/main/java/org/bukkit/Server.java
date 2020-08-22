@@ -159,6 +159,15 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
      */
     public int getMaxPlayers();
 
+    // Paper start
+    /**
+     * Set the maximum amount of players which can login to this server.
+     *
+     * @param maxPlayers the amount of players this server allows
+     */
+    public void setMaxPlayers(int maxPlayers);
+    // Paper end
+
     /**
      * Get the game port that the server runs on.
      *
