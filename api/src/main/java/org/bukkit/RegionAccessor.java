@@ -376,4 +376,12 @@ public interface RegionAccessor {
      */
     @NotNull
     public <T extends Entity> T spawn(@NotNull Location location, @NotNull Class<T> clazz, boolean randomizeData, @Nullable Consumer<T> function) throws IllegalArgumentException;
+
+    // Paper start
+    /**
+     * @return the current moon phase at the current time in the world
+     */
+    @NotNull
+    io.papermc.paper.world.MoonPhase getMoonPhase();
+    // Paper end
 }
