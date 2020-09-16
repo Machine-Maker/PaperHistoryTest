@@ -210,6 +210,13 @@ public interface Registry<T extends Keyed> extends Iterable<T> {
             return GameEvent.getByKey(key);
         }
     };
+    // Paper start
+    /**
+     * Configured structures.
+     * @see io.papermc.paper.world.structure.ConfiguredStructure
+     */
+    Registry<io.papermc.paper.world.structure.ConfiguredStructure> CONFIGURED_STRUCTURE = Bukkit.getRegistry(io.papermc.paper.world.structure.ConfiguredStructure.class);
+    // Paper end
 
     /**
      * Get the object by its key.
