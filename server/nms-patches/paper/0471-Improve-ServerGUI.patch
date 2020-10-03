@@ -1,0 +1,61 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AlexProgrammerDE <40795980+AlexProgrammerDE@users.noreply.github.com>
+Date: Sat, 3 Oct 2020 08:27:40 +0200
+Subject: [PATCH] Improve ServerGUI
+
+- Added logo to server frame
+- Show tps in the server stats
+
+diff --git a/src/main/java/net/minecraft/server/gui/MinecraftServerGui.java b/src/main/java/net/minecraft/server/gui/MinecraftServerGui.java
+index 66464c10a6b33414c6d1b67b926a66c343d5f887..c07918aa1ed2469ad7a76a0add60ab648ff7f421 100644
+--- a/src/main/java/net/minecraft/server/gui/MinecraftServerGui.java
++++ b/src/main/java/net/minecraft/server/gui/MinecraftServerGui.java
+@@ -59,6 +59,15 @@ public class MinecraftServerGui extends JComponent {
+         jframe.pack();
+         jframe.setLocationRelativeTo((Component) null);
+         jframe.setVisible(true);
++        jframe.setName("Minecraft server"); // Paper
++
++        // Paper start - Add logo as frame image
++        try {
++            jframe.setIconImage(javax.imageio.ImageIO.read(Objects.requireNonNull(MinecraftServerGui.class.getClassLoader().getResourceAsStream("logo.png"))));
++        } catch (java.io.IOException ignore) {
++        }
++        // Paper end
++
+         jframe.addWindowListener(new WindowAdapter() {
+             public void windowClosing(WindowEvent windowevent) {
+                 if (!servergui.isClosing.getAndSet(true)) {
+diff --git a/src/main/java/net/minecraft/server/gui/StatsComponent.java b/src/main/java/net/minecraft/server/gui/StatsComponent.java
+index 4c5059805715bbca53196bcabd7eda550a46c34d..88f10d729aa1e0a01790521821d691a0ecd373a2 100644
+--- a/src/main/java/net/minecraft/server/gui/StatsComponent.java
++++ b/src/main/java/net/minecraft/server/gui/StatsComponent.java
+@@ -35,8 +35,17 @@ public class StatsComponent extends JComponent {
+ 
+     private void tick() {
+         long l = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
++        // Paper start - Add tps entry
++        double[] tps = org.bukkit.Bukkit.getTPS();
++        String[] tpsAvg = new String[tps.length];
++
++        for ( int g = 0; g < tps.length; g++) {
++            tpsAvg[g] = format( tps[g] );
++        }
+         this.msgs[0] = "Memory use: " + l / 1024L / 1024L + " mb (" + Runtime.getRuntime().freeMemory() * 100L / Runtime.getRuntime().maxMemory() + "% free)";
+         this.msgs[1] = "Avg tick: " + DECIMAL_FORMAT.format(this.getAverage(this.server.tickTimes) * 1.0E-6D) + " ms";
++        this.msgs[2] = "TPS from last 1m, 5m, 15m: " + String.join(", ", tpsAvg);
++        // Paper end
+         this.values[this.vp++ & 255] = (int)(l * 100L / Runtime.getRuntime().maxMemory());
+         this.repaint();
+     }
+@@ -76,4 +85,10 @@ public class StatsComponent extends JComponent {
+     public void close() {
+         this.timer.stop();
+     }
++
++    // Paper - start Add tps entry
++    private static String format(double tps) {
++        return (( tps > 21.0 ) ? "*" : "") + Math.min(Math.round(tps * 100.0) / 100.0, 20.0); // only print * at 21, we commonly peak to 20.02 as the tick sleep is not accurate enough, stop the noise
++    }
++    // Paper end
+ }
