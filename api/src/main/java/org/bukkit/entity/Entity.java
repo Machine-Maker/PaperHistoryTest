@@ -763,5 +763,10 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
      * Check if entity is in lava
      */
     public boolean isInLava();
+
+    /**
+     * Check if entity is inside a ticking chunk
+     */
+    public boolean isTicking();
     // Paper end
 }
