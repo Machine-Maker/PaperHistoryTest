@@ -656,5 +656,29 @@ public interface Block extends Metadatable, net.kyori.adventure.translation.Tran
     @NotNull
     @Deprecated
     String getTranslationKey();
+
+    /**
+     * Gets the speed at which this block will be destroyed by a given {@link ItemStack}
+     *
+     * <p>Default value is 1.0</p>
+     *
+     * @param itemStack {@link ItemStack} used to mine this Block
+     * @return the speed that this Block will be mined by the given {@link ItemStack}
+     */
+    @NotNull
+    public default float getDestroySpeed(@NotNull ItemStack itemStack) {
+        return getDestroySpeed(itemStack, false);
+    }
+
+    /**
+     * Gets the speed at which this blook will be destroyed by a given {@link org.bukkit.inventory.ItemStack}
+     * <p>
+     * Default value is 1.0
+     * @param itemStack {@link org.bukkit.inventory.ItemStack} used to mine this Block
+     * @param considerEnchants true to look at enchants on the itemstack
+     * @return the speed that this Block will be mined by the given {@link org.bukkit.inventory.ItemStack}
+     */
+    @NotNull
+    float getDestroySpeed(@NotNull ItemStack itemStack, boolean considerEnchants);
     // Paper end
 }
