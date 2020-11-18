@@ -100,8 +100,10 @@ public interface Zombie extends Monster, Ageable {
 
     /**
      * Sets whether this zombie can break doors
-     *
-     * This will be ignored if the entity is a Drowned. Will also stop the action if
+     * <p>
+     * Check {@link #supportsBreakingDoors()} to see
+     * if this zombie type will even be affected by using
+     * this method. Will also stop the action if
      * the entity is currently breaking a door.
      *
      * @param flag Whether this zombie can break doors
@@ -158,5 +160,15 @@ public interface Zombie extends Monster, Ageable {
      * @param shouldBurnInDay True to burn in sunlight
      */
     void setShouldBurnInDay(boolean shouldBurnInDay);
+
+    /**
+     * Checks if this zombie type supports breaking doors.
+     * {@link Drowned} do not have support for breaking doors
+     * so using {@link #setCanBreakDoors(boolean)} on them has
+     * no effect.
+     *
+     * @return true if entity supports breaking doors
+     */
+    boolean supportsBreakingDoors();
     // Paper end
 }
