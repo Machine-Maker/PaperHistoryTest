@@ -101,5 +101,11 @@ public interface UnsafeValues {
     default com.destroystokyo.paper.util.VersionFetcher getVersionFetcher() {
         return new com.destroystokyo.paper.util.VersionFetcher.DummyVersionFetcher();
     }
+
+    boolean isSupportedApiVersion(String apiVersion);
+
+    static boolean isLegacyPlugin(org.bukkit.plugin.Plugin plugin) {
+        return !Bukkit.getUnsafe().isSupportedApiVersion(plugin.getDescription().getAPIVersion());
+    }
     // Paper end
 }
