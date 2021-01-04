@@ -1,5 +1,6 @@
 package org.bukkit.event.player;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -34,22 +35,30 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
     private Result useClickedBlock;
     private Result useItemInHand;
     private EquipmentSlot hand;
+    private Location interactionPoint; // Paper
 
     public PlayerInteractEvent(@NotNull final Player who, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace) {
         this(who, action, item, clickedBlock, clickedFace, EquipmentSlot.HAND);
     }
 
     public PlayerInteractEvent(@NotNull final Player who, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace, @Nullable final EquipmentSlot hand) {
+        // Paper start - Add interactionPoint
+        this(who, action, item, clickedBlock, clickedFace, hand, null);
+    }
+
+    public PlayerInteractEvent(@NotNull final Player who, @NotNull final Action action, @Nullable final ItemStack item, @Nullable final Block clickedBlock, @NotNull final BlockFace clickedFace, @Nullable final EquipmentSlot hand, @Nullable final Location interactionPoint) {
         super(who);
         this.action = action;
         this.item = item;
         this.blockClicked = clickedBlock;
         this.blockFace = clickedFace;
         this.hand = hand;
+        this.interactionPoint = interactionPoint;
 
         useItemInHand = Result.DEFAULT;
         useClickedBlock = clickedBlock == null ? Result.DENY : Result.ALLOW;
     }
+    // Paper end
 
     /**
      * Returns the action type
@@ -220,6 +229,18 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
     public EquipmentSlot getHand() {
         return hand;
     }
+
+    // Paper start
+    /**
+     * The exact point at which the interaction occurred. May be null.
+     *
+     * @return the exact interaction point. May be null.
+     */
+    @Nullable
+    public Location getInteractionPoint() {
+        return interactionPoint;
+    }
+    // Paper end
 
     @NotNull
     @Override
