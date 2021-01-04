@@ -811,6 +811,44 @@ public interface Tag<T extends Keyed> extends Keyed {
      * Vanilla tag representing entities which can be eaten by frogs.
      */
     Tag<EntityType> ENTITY_TYPES_FROG_FOOD = Bukkit.getTag(REGISTRY_ENTITY_TYPES, NamespacedKey.minecraft("frog_food"), EntityType.class);
+    // Paper start
+    /**
+     * Key for the built-in entity registry
+     * @deprecated use {@link #REGISTRY_ENTITY_TYPES}
+     */
+    @Deprecated(forRemoval = true)
+    String REGISTRY_ENTITIES = REGISTRY_ENTITY_TYPES;
+    /**
+     * Vanilla entity tag representing arrow entities.
+     * @deprecated use {@link #ENTITY_TYPES_ARROWS}
+     */
+    @Deprecated(forRemoval = true)
+    Tag<EntityType> ARROWS = ENTITY_TYPES_ARROWS;
+    /**
+     * Vanilla entity tag representing entities that live in beehives
+     * @deprecated use {@link #ENTITY_TYPES_BEEHIVE_INHABITORS}
+     */
+    @Deprecated(forRemoval = true)
+    Tag<EntityType> BEEHIVE_INHABITORS = ENTITY_TYPES_BEEHIVE_INHABITORS;
+    /**
+     * Vanilla entity tag representing projectiles that impact
+     * @deprecated use {@link #ENTITY_TYPES_IMPACT_PROJECTILES}
+     */
+    @Deprecated(forRemoval = true)
+    Tag<EntityType> IMPACT_PROJECTILES = ENTITY_TYPES_IMPACT_PROJECTILES;
+    /**
+     * Vanilla entity tag for village raiders
+     * @deprecated use {@link #ENTITY_TYPES_RAIDERS}
+     */
+    @Deprecated(forRemoval = true)
+    Tag<EntityType> RAIDERS = ENTITY_TYPES_RAIDERS;
+    /**
+     * Vanilla entity tag for skeleton types
+     * @deprecated use {@link #ENTITY_TYPES_SKELETONS}
+     */
+    @Deprecated(forRemoval = true)
+    Tag<EntityType> SKELETONS = ENTITY_TYPES_SKELETONS;
+    // Paper end
 
     /**
      * Returns whether or not this tag has an entry for the specified item.
