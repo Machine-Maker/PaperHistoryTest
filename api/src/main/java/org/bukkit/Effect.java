@@ -307,7 +307,100 @@ public enum Effect {
      * block.
      */
     OXIDISED_COPPER_SCRAPE(3005, Type.VISUAL),
+    // Paper start - add missing effects
+    /**
+     * The sound of a wither spawning
+     */
+    WITHER_SPAWNED(1023, Type.SOUND),
+    /**
+     * The sound of an ender dragon dying
+     */
+    ENDER_DRAGON_DEATH(1028, Type.SOUND),
+    /**
+     * The sound of an ender portal being created in the overworld
+     */
+    END_PORTAL_CREATED_IN_OVERWORLD(1038, Type.SOUND),
+    /**
+     * The sound of phantom's bites
+     *
+     * @deprecated use {@link #PHANTOM_BITE}
+     */
+    @Deprecated(forRemoval = true)
+    PHANTOM_BITES(1039, Type.SOUND),
+    /**
+     * The sound of zombie converting to drowned zombie
+     *
+     * @deprecated use {@link #ZOMBIE_CONVERTED_TO_DROWNED}
+     */
+    @Deprecated(forRemoval = true)
+    ZOMBIE_CONVERTS_TO_DROWNED(1040, Type.SOUND),
+    /**
+     * The sound of a husk converting to zombie by drowning
+     *
+     * @deprecated use {@link #HUSK_CONVERTED_TO_ZOMBIE}
+     */
+    @Deprecated(forRemoval = true)
+    HUSK_CONVERTS_TO_ZOMBIE(1041, Type.SOUND),
+    /**
+     * The sound of a grindstone being used
+     *
+     * @deprecated use {@link #GRINDSTONE_USE}
+     */
+    @Deprecated(forRemoval = true)
+    GRINDSTONE_USED(1042, Type.SOUND),
+    /**
+     * The sound of a book page being turned
+     *
+     * @deprecated use {@link #BOOK_PAGE_TURN}
+     */
+    @Deprecated(forRemoval = true)
+    BOOK_PAGE_TURNED(1043, Type.SOUND),
+    /**
+     * Particles displayed when a composter composts
+     *
+     * @deprecated use {@link #COMPOSTER_FILL_ATTEMPT}
+     */
+    @Deprecated(forRemoval = true)
+    COMPOSTER_COMPOSTS(1500, Type.VISUAL),
+    /**
+     * Particles displayed when lava converts a block (either water to stone, or
+     * removing existing blocks such as torches)
+     *
+     * @deprecated use {@link #LAVA_INTERACT}
+     */
+    @Deprecated(forRemoval = true)
+    LAVA_CONVERTS_BLOCK(1501, Type.VISUAL),
+    /**
+     * Particles displayd when a redstone torch burns out
+     *
+     * @deprecated use {@link #REDSTONE_TORCH_BURNOUT}
+     */
+    @Deprecated(forRemoval = true)
+    REDSTONE_TORCH_BURNS_OUT(1502, Type.VISUAL),
+    /**
+     * Particles displayed when an ender eye is placed
+     *
+     * @deprecated use {@link #END_PORTAL_FRAME_FILL}
+     */
+    @Deprecated(forRemoval = true)
+    ENDER_EYE_PLACED(1503, Type.VISUAL),
+    /**
+     * Particles displayed when an ender dragon destroys block
+     *
+     * @deprecated use {@link #ENDER_DRAGON_DESTROY_BLOCK}
+     */
+    @Deprecated(forRemoval = true)
+    ENDER_DRAGON_DESTROYS_BLOCK(2008, Type.VISUAL),
+    /**
+     * Particles displayed when a wet sponge vaporizes in nether.
+     *
+     * @deprecated use {@link #SPONGE_DRY}
+     */
+    @Deprecated(forRemoval = true)
+    WET_SPONGE_VAPORIZES_IN_NETHER(2009, Type.VISUAL),
     ;
+    private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger();
+    // Paper end
 
     private final int id;
     private final Type type;
@@ -367,9 +460,21 @@ public enum Effect {
 
     static {
         for (Effect effect : values()) {
+            if (!isDeprecated(effect)) // Paper
             BY_ID.put(effect.id, effect);
         }
     }
+
+    // Paper start
+    private static boolean isDeprecated(Effect effect) {
+        try {
+            return Effect.class.getDeclaredField(effect.name()).isAnnotationPresent(Deprecated.class);
+        } catch (NoSuchFieldException e) {
+            LOGGER.error("Error getting effect enum field {}", effect.name(), e);
+            return false;
+        }
+    }
+    // Paper end
 
     /**
      * Represents the type of an effect.
