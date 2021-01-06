@@ -157,5 +157,10 @@ public interface UnsafeValues {
      * @throws IllegalArgumentException if there isn't a registry for that type
      */
     <T extends Keyed> @org.jetbrains.annotations.NotNull Registry<T> registryFor(Class<T> classOfT);
+
+    /**
+     * Just don't use it.
+     */
+    @org.jetbrains.annotations.NotNull String getMainLevelName();
     // Paper end
 }
