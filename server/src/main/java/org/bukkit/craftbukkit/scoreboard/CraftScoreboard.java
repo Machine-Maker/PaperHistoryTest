@@ -27,6 +27,27 @@ public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
     public CraftObjective registerNewObjective(String name, String criteria) throws IllegalArgumentException {
         return this.registerNewObjective(name, criteria, name);
     }
+    // Paper start
+    @Override
+    public CraftObjective registerNewObjective(String name, String criteria, net.kyori.adventure.text.Component displayName) {
+        return registerNewObjective(name, criteria, displayName, org.bukkit.scoreboard.RenderType.INTEGER);
+    }
+    @Override
+    public CraftObjective registerNewObjective(String name, String criteria, net.kyori.adventure.text.Component displayName, RenderType renderType) {
+        if (displayName == null) {
+            displayName = net.kyori.adventure.text.Component.empty();
+        }
+        Validate.notNull(name, "Objective name cannot be null");
+        Validate.notNull(criteria, "Criteria cannot be null");
+        Validate.notNull(displayName, "Display name cannot be null");
+        Validate.notNull(renderType, "RenderType cannot be null");
+        Validate.isTrue(name.length() <= Short.MAX_VALUE, "The name '" + name + "' is longer than the limit of 32767 characters");
+        Validate.isTrue(board.getObjective(name) == null, "An objective of name '" + name + "' already exists");
+        CraftCriteria craftCriteria = CraftCriteria.getFromBukkit(criteria);
+        net.minecraft.world.scores.Objective objective = board.addObjective(name, craftCriteria.criteria, io.papermc.paper.adventure.PaperAdventure.asVanilla(displayName), CraftScoreboardTranslations.fromBukkitRender(renderType));
+        return new CraftObjective(this, objective);
+    }
+    // Paper end
 
     @Override
     public CraftObjective registerNewObjective(String name, String criteria, String displayName) throws IllegalArgumentException {
@@ -35,7 +56,7 @@ public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
 
     @Override
     public CraftObjective registerNewObjective(String name, String criteria, String displayName, RenderType renderType) throws IllegalArgumentException {
-        Validate.notNull(name, "Objective name cannot be null");
+        /*Validate.notNull(name, "Objective name cannot be null"); // Paper
         Validate.notNull(criteria, "Criteria cannot be null");
         Validate.notNull(displayName, "Display name cannot be null");
         Validate.notNull(renderType, "RenderType cannot be null");
@@ -45,7 +66,11 @@ public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
 
         CraftCriteria craftCriteria = CraftCriteria.getFromBukkit(criteria);
         net.minecraft.world.scores.Objective objective = this.board.addObjective(name, craftCriteria.criteria, CraftChatMessage.fromStringOrNull(displayName), CraftScoreboardTranslations.fromBukkitRender(renderType));
-        return new CraftObjective(this, objective);
+
+        CraftCriteria craftCriteria = CraftCriteria.getFromBukkit(criteria);
+        ScoreboardObjective objective = board.registerObjective(name, craftCriteria.criteria, CraftChatMessage.fromStringOrNull(displayName), CraftScoreboardTranslations.fromBukkitRender(renderType));
+        return new CraftObjective(this, objective);*/ // Paper
+        return registerNewObjective(name, criteria, net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(displayName), renderType); // Paper
     }
 
     @Override
