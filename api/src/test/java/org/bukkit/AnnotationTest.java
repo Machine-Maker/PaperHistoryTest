@@ -26,6 +26,12 @@ import org.objectweb.asm.tree.ParameterNode;
 public class AnnotationTest {
 
     private static final String[] ACCEPTED_ANNOTATIONS = {
+        // Paper start
+        "Lorg/checkerframework/checker/nullness/qual/Nullable;",
+        "Lorg/checkerframework/checker/nullness/qual/NonNull;",
+        "Lorg/checkerframework/checker/nullness/qual/PolyNull;",
+        "Lorg/checkerframework/checker/nullness/qual/MonotonicNonNull;",
+        // Paper end
         "Lorg/jetbrains/annotations/Nullable;",
         "Lorg/jetbrains/annotations/NotNull;",
         "Lorg/jetbrains/annotations/Contract;",
@@ -105,7 +111,7 @@ public class AnnotationTest {
                         if (method.invisibleTypeAnnotations != null) {
                             for (final org.objectweb.asm.tree.TypeAnnotationNode invisibleTypeAnnotation : method.invisibleTypeAnnotations) {
                                 final org.objectweb.asm.TypeReference ref = new org.objectweb.asm.TypeReference(invisibleTypeAnnotation.typeRef);
-                                if (ref.getSort() == org.objectweb.asm.TypeReference.METHOD_FORMAL_PARAMETER && ref.getTypeParameterIndex() == i && java.util.Arrays.binarySearch(ACCEPTED_ANNOTATIONS, invisibleTypeAnnotation.desc) >= 0) {
+                                if (ref.getSort() == org.objectweb.asm.TypeReference.METHOD_FORMAL_PARAMETER && ref.getTypeParameterIndex() == i && java.util.Arrays.asList(ACCEPTED_ANNOTATIONS).contains(invisibleTypeAnnotation.desc)) {
                                     continue dancing;
                                 }
                             }

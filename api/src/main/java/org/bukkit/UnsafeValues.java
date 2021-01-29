@@ -22,6 +22,14 @@ import org.bukkit.plugin.PluginDescriptionFile;
  */
 @Deprecated
 public interface UnsafeValues {
+    // Paper start
+    net.kyori.adventure.text.flattener.ComponentFlattener componentFlattener();
+    @Deprecated(forRemoval = true) net.kyori.adventure.text.serializer.plain.PlainComponentSerializer plainComponentSerializer();
+    @Deprecated(forRemoval = true) net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer plainTextSerializer();
+    @Deprecated(forRemoval = true) net.kyori.adventure.text.serializer.gson.GsonComponentSerializer gsonComponentSerializer();
+    @Deprecated(forRemoval = true) net.kyori.adventure.text.serializer.gson.GsonComponentSerializer colorDownsamplingGsonComponentSerializer();
+    @Deprecated(forRemoval = true) net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer legacyComponentSerializer();
+    // Paper end
 
     Material toLegacy(Material material);
 

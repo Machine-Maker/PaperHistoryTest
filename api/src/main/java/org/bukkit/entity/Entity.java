@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a base entity in the world
  */
-public interface Entity extends Metadatable, CommandSender, Nameable, PersistentDataHolder {
+public interface Entity extends Metadatable, CommandSender, Nameable, PersistentDataHolder, net.kyori.adventure.text.event.HoverEventSource<net.kyori.adventure.text.event.HoverEvent.ShowEntity>, net.kyori.adventure.sound.Sound.Emitter { // Paper
 
     /**
      * Gets the entity's current position
@@ -656,4 +656,20 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
     @Override
     Spigot spigot();
     // Spigot end
+
+    // Paper start
+    /**
+     * Gets the entity's display name formatted with their team prefix/suffix and
+     * the entity's default hover/click events.
+     *
+     * @return the team display name
+     */
+    @NotNull net.kyori.adventure.text.Component teamDisplayName();
+
+    @NotNull
+    @Override
+    default net.kyori.adventure.text.event.HoverEvent<net.kyori.adventure.text.event.HoverEvent.ShowEntity> asHoverEvent(final @NotNull java.util.function.UnaryOperator<net.kyori.adventure.text.event.HoverEvent.ShowEntity> op) {
+        return net.kyori.adventure.text.event.HoverEvent.showEntity(op.apply(net.kyori.adventure.text.event.HoverEvent.ShowEntity.of(this.getType().getKey(), this.getUniqueId(), this.customName())));
+    }
+    // Paper end
 }

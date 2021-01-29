@@ -8,17 +8,37 @@ java {
     withJavadocJar()
 }
 
+val adventureVersion = "4.11.0"
+val apiAndDocs: Configuration by configurations.creating {
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+    }
+}
+configurations.api {
+    extendsFrom(apiAndDocs)
+}
+
 dependencies {
     // api dependencies are listed transitively to API consumers
     api("com.google.guava:guava:31.0.1-jre")
     api("com.google.code.gson:gson:2.8.9")
-    api("net.md-5:bungeecord-chat:1.16-R0.4")
+    api("net.md-5:bungeecord-chat:1.16-R0.4-deprecated+build.6") // Paper
     api("org.yaml:snakeyaml:1.30")
     // Paper start
     api("com.googlecode.json-simple:json-simple:1.1.1") {
         isTransitive = false // includes junit
     }
     api("it.unimi.dsi:fastutil:8.5.6")
+    apiAndDocs(platform("net.kyori:adventure-bom:$adventureVersion"))
+    apiAndDocs("net.kyori:adventure-api")
+    apiAndDocs("net.kyori:adventure-text-minimessage")
+    apiAndDocs("net.kyori:adventure-text-serializer-gson")
+    apiAndDocs("net.kyori:adventure-text-serializer-legacy")
+    apiAndDocs("net.kyori:adventure-text-serializer-plain")
+    apiAndDocs("net.kyori:adventure-text-logger-slf4j")
     // Paper end
 
     compileOnly("org.apache.maven:maven-resolver-provider:3.8.5")
@@ -78,8 +98,23 @@ tasks.withType<Javadoc> {
         "https://guava.dev/releases/31.0.1-jre/api/docs/",
         "https://javadoc.io/doc/org.yaml/snakeyaml/1.30/",
         "https://javadoc.io/doc/org.jetbrains/annotations/23.0.0/", // Paper - we don't want Java 5 annotations
-        "https://javadoc.io/doc/net.md-5/bungeecord-chat/1.16-R0.4/",
+        // Paper start
+        //"https://javadoc.io/doc/net.md-5/bungeecord-chat/1.16-R0.4/", // don't link to bungee chat
+        "https://jd.adventure.kyori.net/api/$adventureVersion/",
+        "https://jd.adventure.kyori.net/text-minimessage/$adventureVersion/",
+        "https://jd.adventure.kyori.net/text-serializer-gson/$adventureVersion/",
+        "https://jd.adventure.kyori.net/text-serializer-legacy/$adventureVersion/",
+        "https://jd.adventure.kyori.net/text-serializer-plain/$adventureVersion/",
+        // Paper end
     )
+
+    inputs.files(apiAndDocs).ignoreEmptyDirectories().withPropertyName(apiAndDocs.name + "-configuration")
+    doFirst {
+        options.addStringOption(
+            "sourcepath",
+            apiAndDocs.resolvedConfiguration.files.joinToString(separator = File.pathSeparator, transform = File::getPath)
+        )
+    }
 
     // workaround for https://github.com/gradle/gradle/issues/4046
     inputs.dir("src/main/javadoc").withPropertyName("javadoc-sourceset")
