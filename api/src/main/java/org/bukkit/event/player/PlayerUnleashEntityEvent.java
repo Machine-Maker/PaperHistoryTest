@@ -13,8 +13,15 @@ public class PlayerUnleashEntityEvent extends EntityUnleashEvent implements Canc
     private final Player player;
     private boolean cancelled = false;
 
+    // Paper start - drop leash variable
+    @Deprecated
     public PlayerUnleashEntityEvent(@NotNull Entity entity, @NotNull Player player) {
-        super(entity, UnleashReason.PLAYER_UNLEASH);
+        this(entity, player, false);
+    }
+
+    public PlayerUnleashEntityEvent(@NotNull Entity entity, @NotNull Player player, boolean dropLeash) {
+        super(entity, UnleashReason.PLAYER_UNLEASH, dropLeash);
+        // Paper end
         this.player = player;
     }
 
