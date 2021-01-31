@@ -1,0 +1,252 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <Spottedleaf@users.noreply.github.com>
+Date: Sun, 31 Jan 2021 02:29:24 -0800
+Subject: [PATCH] Optimise general POI access
+
+There are a couple of problems with mojang's POI code.
+Firstly, it's all streams. Unsurprisingly, stacking
+streams on top of each other is horrible for performance
+and ultimately took up half of a villager's tick!
+
+Secondly, sometime's the search radius is large and there are
+a significant number of poi entries per chunk section. Even
+removing streams at this point doesn't help much. The only solution
+is to start at the search point and iterate outwards. This
+type of approach shows massive gains for portals, simply because
+we can avoid sync loading a large area of chunks. I also tested
+a massive farm I found in JellySquid's discord, which showed
+to benefit significantly simply because the farm had so many
+portal blocks that searching through them all was very slow.
+
+Great care has been taken so that behavior remains identical to
+vanilla, however I cannot account for oddball Stream API
+implementations, if they even exist (streams can technically
+be loose with iteration order in a sorted stream given its
+source stream is not tagged with ordered, and mojang does not
+tag the source stream as ordered). However in my testing on openjdk
+there showed no difference, as expected.
+
+This patch also specifically optimises other areas of code to
+use PoiAccess. For example, some villager AI and portaling code
+had to be specifically modified.
+
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java b/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
+index 4f75f2be7070d49c2c60866ad7146da19ab61652..43243537b765a2d270be6de3f053fea77ff67d18 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/AcquirePoi.java
+@@ -87,7 +87,11 @@ public class AcquirePoi extends Behavior<PathfinderMob> {
+                 return true;
+             }
+         };
+-        Set<Pair<Holder<PoiType>, BlockPos>> set = poiManager.findAllClosestFirstWithType(this.poiType, predicate, entity.blockPosition(), 48, PoiManager.Occupancy.HAS_SPACE).limit(5L).collect(Collectors.toSet());
++        // Paper start - optimise POI access
++        java.util.List<Pair<Holder<PoiType>, BlockPos>> poiposes = new java.util.ArrayList<>();
++        io.papermc.paper.util.PoiAccess.findNearestPoiPositions(poiManager, this.poiType, predicate, entity.blockPosition(), 48, 48*48, PoiManager.Occupancy.HAS_SPACE, false, 5, poiposes);
++        Set<Pair<Holder<PoiType>, BlockPos>> set = new java.util.HashSet<>(poiposes);
++        // Paper end - optimise POI access
+         Path path = findPathToPois(entity, set);
+         if (path != null && path.canReach()) {
+             BlockPos blockPos = path.getTarget();
+diff --git a/src/main/java/net/minecraft/world/entity/ai/sensing/NearestBedSensor.java b/src/main/java/net/minecraft/world/entity/ai/sensing/NearestBedSensor.java
+index 33fbf72b440e0d164ecd4fb0fdec72e2394d0a1e..8db20db72cd51046213625fac46c35854c59ec5d 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/sensing/NearestBedSensor.java
++++ b/src/main/java/net/minecraft/world/entity/ai/sensing/NearestBedSensor.java
+@@ -53,10 +53,12 @@ public class NearestBedSensor extends Sensor<Mob> {
+                     return true;
+                 }
+             };
+-            Set<Pair<Holder<PoiType>, BlockPos>> set = poiManager.findAllWithType((holder) -> {
+-                return holder.is(PoiTypes.HOME);
+-            }, predicate, entity.blockPosition(), 48, PoiManager.Occupancy.ANY).collect(Collectors.toSet());
+-            Path path = AcquirePoi.findPathToPois(entity, set);
++            // Paper start - optimise POI access
++            java.util.List<Pair<Holder<PoiType>, BlockPos>> poiposes = new java.util.ArrayList<>();
++            // don't ask me why it's unbounded. ask mojang.
++            io.papermc.paper.util.PoiAccess.findAnyPoiPositions(poiManager, type -> type.is(PoiTypes.HOME), predicate, entity.blockPosition(), 48, PoiManager.Occupancy.ANY, false, Integer.MAX_VALUE, poiposes);
++            Path path = AcquirePoi.findPathToPois(entity, new java.util.HashSet<>(poiposes));
++            // Paper end - optimise POI access
+             if (path != null && path.canReach()) {
+                 BlockPos blockPos = path.getTarget();
+                 Optional<Holder<PoiType>> optional = poiManager.getType(blockPos);
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiManager.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiManager.java
+index ab9bb440c8e91ecb49c1e14a427d35087a87ac80..497a81e49d54380713c18523ae8f09f94c453721 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiManager.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiManager.java
+@@ -40,7 +40,7 @@ public class PoiManager extends SectionStorage<PoiSection> {
+     public static final int VILLAGE_SECTION_SIZE = 1;
+     private final PoiManager.DistanceTracker distanceTracker;
+     private final LongSet loadedChunks = new LongOpenHashSet();
+-    private final net.minecraft.server.level.ServerLevel world; // Paper
++    public final net.minecraft.server.level.ServerLevel world; // Paper // Paper public
+ 
+     public PoiManager(Path path, DataFixer dataFixer, boolean dsync, RegistryAccess registryManager, LevelHeightAccessor world) {
+         super(path, PoiSection::codec, PoiSection::new, dataFixer, DataFixTypes.POI_CHUNK, dsync, registryManager, world);
+@@ -113,43 +113,62 @@ public class PoiManager extends SectionStorage<PoiSection> {
+     }
+ 
+     public Optional<BlockPos> find(Predicate<Holder<PoiType>> typePredicate, Predicate<BlockPos> posPredicate, BlockPos pos, int radius, PoiManager.Occupancy occupationStatus) {
+-        return this.findAll(typePredicate, posPredicate, pos, radius, occupationStatus).findFirst();
++        // Paper start - re-route to faster logic
++        BlockPos ret = io.papermc.paper.util.PoiAccess.findAnyPoiPosition(this, typePredicate, posPredicate, pos, radius, occupationStatus, false);
++        return Optional.ofNullable(ret);
++        // Paper end
+     }
+ 
+     public Optional<BlockPos> findClosest(Predicate<Holder<PoiType>> typePredicate, BlockPos pos, int radius, PoiManager.Occupancy occupationStatus) {
+-        return this.getInRange(typePredicate, pos, radius, occupationStatus).map(PoiRecord::getPos).min(Comparator.comparingDouble((blockPos2) -> {
+-            return blockPos2.distSqr(pos);
+-        }));
++        // Paper start - re-route to faster logic
++        BlockPos ret = io.papermc.paper.util.PoiAccess.findClosestPoiDataPosition(this, typePredicate, null, pos, radius, radius * radius, occupationStatus, false);
++        return Optional.ofNullable(ret);
++        // Paper end - re-route to faster logic
+     }
+ 
+     public Optional<Pair<Holder<PoiType>, BlockPos>> findClosestWithType(Predicate<Holder<PoiType>> typePredicate, BlockPos pos, int radius, PoiManager.Occupancy occupationStatus) {
+-        return this.getInRange(typePredicate, pos, radius, occupationStatus).min(Comparator.comparingDouble((poi) -> {
+-            return poi.getPos().distSqr(pos);
+-        })).map((poi) -> {
+-            return Pair.of(poi.getPoiType(), poi.getPos());
+-        });
++        // Paper start - re-route to faster logic
++        return Optional.ofNullable(io.papermc.paper.util.PoiAccess.findClosestPoiDataTypeAndPosition(
++            this, typePredicate, null, pos, radius, radius * radius, occupationStatus, false
++        ));
++        // Paper end - re-route to faster logic
+     }
+ 
+     public Optional<BlockPos> findClosest(Predicate<Holder<PoiType>> typePredicate, Predicate<BlockPos> posPredicate, BlockPos pos, int radius, PoiManager.Occupancy occupationStatus) {
+-        return this.getInRange(typePredicate, pos, radius, occupationStatus).map(PoiRecord::getPos).filter(posPredicate).min(Comparator.comparingDouble((blockPos2) -> {
+-            return blockPos2.distSqr(pos);
+-        }));
++        // Paper start - re-route to faster logic
++        BlockPos ret = io.papermc.paper.util.PoiAccess.findClosestPoiDataPosition(this, typePredicate, posPredicate, pos, radius, radius * radius, occupationStatus, false);
++        return Optional.ofNullable(ret);
++        // Paper end - re-route to faster logic
+     }
+ 
+     public Optional<BlockPos> take(Predicate<Holder<PoiType>> typePredicate, BiPredicate<Holder<PoiType>, BlockPos> biPredicate, BlockPos pos, int radius) {
+-        return this.getInRange(typePredicate, pos, radius, PoiManager.Occupancy.HAS_SPACE).filter((poi) -> {
+-            return biPredicate.test(poi.getPoiType(), poi.getPos());
+-        }).findFirst().map((poi) -> {
++        // Paper start - re-route to faster logic
++        final @javax.annotation.Nullable PoiRecord closest = io.papermc.paper.util.PoiAccess.findClosestPoiDataRecord(
++            this, typePredicate, biPredicate, pos, radius, radius * radius, Occupancy.HAS_SPACE, false
++        );
++        return Optional.ofNullable(closest).map(poi -> {
++            // Paper end - re-route to faster logic
+             poi.acquireTicket();
+             return poi.getPos();
+         });
+     }
+ 
+     public Optional<BlockPos> getRandom(Predicate<Holder<PoiType>> typePredicate, Predicate<BlockPos> positionPredicate, PoiManager.Occupancy occupationStatus, BlockPos pos, int radius, RandomSource random) {
+-        List<PoiRecord> list = Util.toShuffledList(this.getInRange(typePredicate, pos, radius, occupationStatus), random);
+-        return list.stream().filter((poi) -> {
+-            return positionPredicate.test(poi.getPos());
+-        }).findFirst().map(PoiRecord::getPos);
++        // Paper start - re-route to faster logic
++        List<PoiRecord> list = new java.util.ArrayList<>();
++        io.papermc.paper.util.PoiAccess.findAnyPoiRecords(
++            this, typePredicate, positionPredicate, pos, radius, occupationStatus, false, Integer.MAX_VALUE, list
++        );
++
++        // the old method shuffled the list and then tried to find the first element in it that
++        // matched positionPredicate, however we moved positionPredicate into the poi search. This means we can avoid a
++        // shuffle entirely, and just pick a random element from list
++        if (list.isEmpty()) {
++            return Optional.empty();
++        }
++
++        return Optional.of(list.get(random.nextInt(list.size())).getPos());
++        // Paper end - re-route to faster logic
+     }
+ 
+     public boolean release(BlockPos pos) {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java
+index bb2be6eea7a0cff4cc70bd43738b1ce213e43558..b71a4027a0eed467a3707c59315092ddecfd6bf3 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/PoiSection.java
+@@ -26,7 +26,7 @@ import org.slf4j.Logger;
+ public class PoiSection {
+     private static final Logger LOGGER = LogUtils.getLogger();
+     private final Short2ObjectMap<PoiRecord> records = new Short2ObjectOpenHashMap<>();
+-    private final Map<Holder<PoiType>, Set<PoiRecord>> byType = Maps.newHashMap();
++    private final Map<Holder<PoiType>, Set<PoiRecord>> byType = Maps.newHashMap(); public final Map<Holder<PoiType>, Set<PoiRecord>> getData() { return this.byType; } // Paper - public accessor
+     private final Runnable setDirty;
+     private boolean isValid;
+ 
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java b/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java
+index 678bd36581ead3a225e3a6e24b78e5db4e42657b..9b2cec7528936a5d53a926c91063cb6e9ed7da1b 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java
+@@ -71,11 +71,11 @@ public class SectionStorage<R> extends RegionFileStorage implements AutoCloseabl
+     }
+ 
+     @Nullable
+-    protected Optional<R> get(long pos) {
++    public Optional<R> get(long pos) { // Paper - public
+         return this.storage.get(pos);
+     }
+ 
+-    protected Optional<R> getOrLoad(long pos) {
++    public Optional<R> getOrLoad(long pos) { // Paper - public
+         if (this.outsideStoredRange(pos)) {
+             return Optional.empty();
+         } else {
+diff --git a/src/main/java/net/minecraft/world/level/portal/PortalForcer.java b/src/main/java/net/minecraft/world/level/portal/PortalForcer.java
+index 1311d69bb2fa7b3617936e6ad6eb5236fedc260d..386a73f32f2504af81107852307dcd393d4d8a11 100644
+--- a/src/main/java/net/minecraft/world/level/portal/PortalForcer.java
++++ b/src/main/java/net/minecraft/world/level/portal/PortalForcer.java
+@@ -51,18 +51,39 @@ public class PortalForcer {
+         // int i = flag ? 16 : 128;
+         // CraftBukkit end
+ 
+-        villageplace.ensureLoadedAndValid(this.level, blockposition, i);
+-        Optional<PoiRecord> optional = villageplace.getInSquare((holder) -> {
+-            return holder.is(PoiTypes.NETHER_PORTAL);
+-        }, blockposition, i, PoiManager.Occupancy.ANY).filter((villageplacerecord) -> {
+-            return worldborder.isWithinBounds(villageplacerecord.getPos());
+-        }).sorted(Comparator.comparingDouble((PoiRecord villageplacerecord) -> { // CraftBukkit - decompile error
+-            return villageplacerecord.getPos().distSqr(blockposition);
+-        }).thenComparingInt((villageplacerecord) -> {
+-            return villageplacerecord.getPos().getY();
+-        })).filter((villageplacerecord) -> {
+-            return this.level.getBlockState(villageplacerecord.getPos()).hasProperty(BlockStateProperties.HORIZONTAL_AXIS);
+-        }).findFirst();
++        // Paper start - optimise portals
++        Optional<PoiRecord> optional;
++        java.util.List<PoiRecord> records = new java.util.ArrayList<>();
++        io.papermc.paper.util.PoiAccess.findClosestPoiDataRecords(
++            villageplace,
++            type -> type.is(PoiTypes.NETHER_PORTAL),
++            (BlockPos pos) -> {
++                net.minecraft.world.level.chunk.ChunkAccess lowest = this.level.getChunk(pos.getX() >> 4, pos.getZ() >> 4, net.minecraft.world.level.chunk.ChunkStatus.EMPTY);
++                if (!lowest.getStatus().isOrAfter(net.minecraft.world.level.chunk.ChunkStatus.FULL)
++                    && (lowest.getBelowZeroRetrogen() == null || !lowest.getBelowZeroRetrogen().targetStatus().isOrAfter(net.minecraft.world.level.chunk.ChunkStatus.HEIGHTMAPS))) {
++                    // why would we generate the chunk?
++                    return false;
++                }
++                if (!worldborder.isWithinBounds(pos)) {
++                    return false;
++                }
++                return lowest.getBlockState(pos).hasProperty(BlockStateProperties.HORIZONTAL_AXIS);
++            },
++            blockposition, i, Double.MAX_VALUE, PoiManager.Occupancy.ANY, true, records
++        );
++
++        // this gets us most of the way there, but we bias towards lower y values.
++        PoiRecord lowestYRecord = null;
++        for (PoiRecord record : records) {
++            if (lowestYRecord == null) {
++                lowestYRecord = record;
++            } else if (lowestYRecord.getPos().getY() > record.getPos().getY()) {
++                lowestYRecord = record;
++            }
++        }
++        // now we're done
++        optional = Optional.ofNullable(lowestYRecord);
++        // Paper end - optimise portals
+ 
+         return optional.map((villageplacerecord) -> {
+             BlockPos blockposition1 = villageplacerecord.getPos();
