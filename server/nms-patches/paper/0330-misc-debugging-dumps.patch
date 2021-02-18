@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Shane Freeder <theboyetronic@gmail.com>
+Date: Thu, 18 Feb 2021 20:23:28 +0000
+Subject: [PATCH] misc debugging dumps
+
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 140ff101b8568fa6df0a793e0068f59d48e91e07..d6d398ad64ec923e36155f8617aeb8d0906a9d59 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -871,6 +871,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+     // CraftBukkit start
+     private boolean hasStopped = false;
+     public volatile boolean hasFullyShutdown = false; // Paper
++    private boolean hasLoggedStop = false; // Paper
+     private final Object stopLock = new Object();
+     public final boolean hasStopped() {
+         synchronized (this.stopLock) {
+@@ -885,6 +886,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             if (this.hasStopped) return;
+             this.hasStopped = true;
+         }
++        if (!hasLoggedStop && isDebugging()) io.papermc.paper.util.TraceUtil.dumpTraceForThread("Server stopped"); // Paper
+         // Paper start - kill main thread, and kill it hard
+         shutdownThread = Thread.currentThread();
+         org.spigotmc.WatchdogThread.doStop(); // Paper
+@@ -1014,6 +1016,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+     }
+     public void safeShutdown(boolean flag, boolean isRestarting) {
+         this.isRestarting = isRestarting;
++        this.hasLoggedStop = true; // Paper
++        if (isDebugging()) io.papermc.paper.util.TraceUtil.dumpTraceForThread("Server stopped"); // Paper
+         // Paper end
+         this.running = false;
+         if (flag) {
+diff --git a/src/main/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java
+index 11a7b79b25f3ad83687f6f9076231e227ebea165..6aecd6aabb7927aa8a7367c34ebc12251d176a58 100644
+--- a/src/main/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java
++++ b/src/main/java/net/minecraft/server/network/ServerLoginPacketListenerImpl.java
+@@ -218,6 +218,11 @@ public class ServerLoginPacketListenerImpl implements TickablePacketListener, Se
+             } catch (Exception exception) {
+                 ServerLoginPacketListenerImpl.LOGGER.error("Couldn't place player in world", exception);
+                 MutableComponent ichatmutablecomponent = Component.translatable("multiplayer.disconnect.invalid_player_data");
++                // Paper start
++                if (MinecraftServer.getServer().isDebugging()) {
++                    exception.printStackTrace();
++                }
++                // Paper end
+ 
+                 this.connection.send(new ClientboundDisconnectPacket(ichatmutablecomponent));
+                 this.connection.disconnect(ichatmutablecomponent);
