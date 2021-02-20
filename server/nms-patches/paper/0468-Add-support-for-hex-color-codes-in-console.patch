@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Josh Roy <10731363+JRoy@users.noreply.github.com>
+Date: Sat, 20 Feb 2021 13:09:59 -0500
+Subject: [PATCH] Add support for hex color codes in console
+
+Converts upstream's hex color code legacy format into actual hex color codes in the console.
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 1de705f90ab8cf10268dfee473b5643a3c1155e2..0450bda44810236d51f77f33ba9c3d60a9c6bb20 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1671,7 +1671,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+     @Override
+     public void sendSystemMessage(Component message) {
+-        MinecraftServer.LOGGER.info(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(io.papermc.paper.adventure.PaperAdventure.asAdventure(message))); // Paper - Log message with colors
++        MinecraftServer.LOGGER.info(io.papermc.paper.console.HexFormattingConverter.SERIALIZER.serialize(io.papermc.paper.adventure.PaperAdventure.asAdventure(message))); // Paper - Log message with colors
+     }
+ 
+     public KeyPair getKeyPair() {
