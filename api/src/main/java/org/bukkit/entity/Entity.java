@@ -768,5 +768,12 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
      * Check if entity is inside a ticking chunk
      */
     public boolean isTicking();
+
+    /**
+     * Returns a set of {@link Player Players} within this entity's tracking range (players that can "see" this entity).
+     *
+     * @return players in tracking range
+     */
+    @NotNull Set<Player> getTrackedPlayers();
     // Paper end
 }
