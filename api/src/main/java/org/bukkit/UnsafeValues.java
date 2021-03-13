@@ -162,5 +162,22 @@ public interface UnsafeValues {
      * Just don't use it.
      */
     @org.jetbrains.annotations.NotNull String getMainLevelName();
+
+    /**
+     * Gets the item rarity of a material. The material <b>MUST</b> be an item.
+     * Use {@link Material#isItem()} before this.
+     *
+     * @param material the material to get the rarity of
+     * @return the item rarity
+     */
+    public io.papermc.paper.inventory.ItemRarity getItemRarity(Material material);
+
+    /**
+     * Gets the item rarity of the itemstack. The rarity can change based on enchantements.
+     *
+     * @param itemStack the itemstack to get the rarity of
+     * @return the itemstack rarity
+     */
+    public io.papermc.paper.inventory.ItemRarity getItemStackRarity(ItemStack itemStack);
     // Paper end
 }
