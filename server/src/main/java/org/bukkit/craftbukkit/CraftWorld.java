@@ -167,7 +167,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
     @Override
     public int getTileEntityCount() {
         // We don't use the full world tile entity list, so we must iterate chunks
-        Long2ObjectLinkedOpenHashMap<ChunkHolder> chunks = world.getChunkSource().chunkMap.visibleChunkMap;
+        Long2ObjectLinkedOpenHashMap<ChunkHolder> chunks = world.getChunkSource().chunkMap.updatingChunks.getVisibleMap(); // Paper - change updating chunks map
         int size = 0;
         for (ChunkHolder playerchunk : chunks.values()) {
             net.minecraft.world.level.chunk.LevelChunk chunk = playerchunk.getTickingChunk();
@@ -188,7 +188,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
     public int getChunkCount() {
         int ret = 0;
 
-        for (ChunkHolder chunkHolder : world.getChunkSource().chunkMap.visibleChunkMap.values()) {
+        for (ChunkHolder chunkHolder : world.getChunkSource().chunkMap.updatingChunks.getVisibleMap().values()) { // Paper - change updating chunks map
             if (chunkHolder.getTickingChunk() != null) {
                 ++ret;
             }
@@ -345,7 +345,18 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
     @Override
     public Chunk[] getLoadedChunks() {
-        Long2ObjectLinkedOpenHashMap<ChunkHolder> chunks = this.world.getChunkSource().chunkMap.visibleChunkMap;
+        // Paper start
+        if (Thread.currentThread() != world.getLevel().thread) {
+            // Paper start - change updating chunks map
+            Long2ObjectLinkedOpenHashMap<ChunkHolder> chunks;
+            synchronized (world.getChunkSource().chunkMap.updatingChunks) {
+                chunks = world.getChunkSource().chunkMap.updatingChunks.getVisibleMap().clone();
+            }
+            return chunks.values().stream().map(ChunkHolder::getFullChunkNow).filter(Objects::nonNull).map(net.minecraft.world.level.chunk.LevelChunk::getBukkitChunk).toArray(Chunk[]::new);
+            // Paper end - change updating chunks map
+        }
+        // Paper end
+        Long2ObjectLinkedOpenHashMap<ChunkHolder> chunks = this.world.getChunkSource().chunkMap.updatingChunks.getVisibleMap(); // Paper - change updating chunks map
         return chunks.values().stream().map(ChunkHolder::getFullChunkNow).filter(Objects::nonNull).map(net.minecraft.world.level.chunk.LevelChunk::getBukkitChunk).toArray(Chunk[]::new);
     }
 
@@ -421,7 +432,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
 
     @Override
     public boolean refreshChunk(int x, int z) {
-        ChunkHolder playerChunk = this.world.getChunkSource().chunkMap.visibleChunkMap.get(ChunkPos.asLong(x, z));
+        ChunkHolder playerChunk = this.world.getChunkSource().chunkMap.updatingChunks.getVisibleMap().get(ChunkPos.asLong(x, z));
         if (playerChunk == null) return false;
 
         playerChunk.getTickingChunkFuture().thenAccept(either -> {

@@ -90,7 +90,7 @@ public final class ChunkDebugCommand implements PaperSubcommand {
             int ticking = 0;
             int entityTicking = 0;
 
-            for (final ChunkHolder chunk : world.getChunkSource().chunkMap.updatingChunkMap.values()) {
+            for (final ChunkHolder chunk : world.getChunkSource().chunkMap.updatingChunks.getUpdatingMap().values()) { // Paper - change updating chunks map
                 if (chunk.getFullChunkNowUnchecked() == null) {
                     continue;
                 }
