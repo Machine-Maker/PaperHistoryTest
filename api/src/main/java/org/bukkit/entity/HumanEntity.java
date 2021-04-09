@@ -327,6 +327,15 @@ public interface HumanEntity extends LivingEntity, AnimalTamer, InventoryHolder 
      */
     public void setCooldown(@NotNull Material material, int ticks);
 
+    // Paper start
+    /**
+     * If the player has slept enough to count towards passing the night.
+     *
+     * @return true if the player has slept enough
+     */
+    public boolean isDeeplySleeping();
+    // Paper end
+
     /**
      * Get the sleep ticks of the player. This value may be capped.
      *
