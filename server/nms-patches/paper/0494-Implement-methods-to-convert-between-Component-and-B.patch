@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jason Penilla <11360596+jpenilla@users.noreply.github.com>
+Date: Sat, 24 Apr 2021 02:09:32 -0700
+Subject: [PATCH] Implement methods to convert between Component and
+ Brigadier's Message
+
+
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index f812b0a2d5534a7c443361bd69cfc2fe2110ba9a..2c215e2080f00d6c875fbde92fd2c1c051d0cf98 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -214,6 +214,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         io.papermc.paper.command.PaperCommands.registerCommands(this);
+         com.destroystokyo.paper.Metrics.PaperMetrics.startMetrics();
+         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
++        io.papermc.paper.brigadier.PaperBrigadierProviderImpl.INSTANCE.getClass(); // init PaperBrigadierProvider
+         // Paper end
+ 
+         this.setPvpAllowed(dedicatedserverproperties.pvp);
