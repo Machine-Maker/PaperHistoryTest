@@ -191,6 +191,18 @@ public interface UnsafeValues {
     public boolean isValidRepairItemStack(@org.jetbrains.annotations.NotNull ItemStack itemToBeRepaired, @org.jetbrains.annotations.NotNull ItemStack repairMaterial);
 
     /**
+     * Returns an immutable multimap of attributes for the material and slot.
+     * {@link Material#isItem()} must be true for this material.
+     *
+     * @param material the material
+     * @param equipmentSlot the slot to get the attributes for
+     * @throws IllegalArgumentException if {@link Material#isItem()} is false
+     * @return an immutable multimap of attributes
+     */
+    @org.jetbrains.annotations.NotNull
+    public Multimap<Attribute, AttributeModifier> getItemAttributes(@org.jetbrains.annotations.NotNull Material material, @org.jetbrains.annotations.NotNull EquipmentSlot equipmentSlot);
+
+    /**
      * Returns the server's protocol version.
      *
      * @return the server's protocol version
