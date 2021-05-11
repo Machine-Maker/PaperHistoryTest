@@ -352,6 +352,15 @@ public interface Inventory extends Iterable<ItemStack> {
      */
     public void clear();
 
+    // Paper start
+    /**
+     * Closes the inventory for all viewers.
+     *
+     * @return the number if viewers the inventory was closed for
+     */
+    public int close();
+    // Paper end
+
     /**
      * Gets a list of players viewing the inventory. Note that a player is
      * considered to be viewing their own inventory and internal crafting
