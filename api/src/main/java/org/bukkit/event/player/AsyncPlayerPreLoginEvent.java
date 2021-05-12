@@ -20,6 +20,7 @@ public class AsyncPlayerPreLoginEvent extends Event {
     private net.kyori.adventure.text.Component message; // Paper
     //private String name; // Paper - Not used anymore
     private final InetAddress ipAddress;
+    private final InetAddress rawAddress; // Paper
     //private UUID uniqueId; // Paper - Not used anymore
 
     @Deprecated
@@ -49,7 +50,23 @@ public class AsyncPlayerPreLoginEvent extends Event {
         this.profile = profile;
     }
 
+    // Paper Start
+    /**
+     * Gets the raw address of the player logging in
+     * @return The address
+     */
+    @NotNull
+    public InetAddress getRawAddress() {
+        return rawAddress;
+    }
+    // Paper end
+
+    @Deprecated
     public AsyncPlayerPreLoginEvent(@NotNull final String name, @NotNull final InetAddress ipAddress, @NotNull final UUID uniqueId, @NotNull PlayerProfile profile) {
+        this(name, ipAddress, ipAddress, uniqueId, profile);
+    }
+
+    public AsyncPlayerPreLoginEvent(@NotNull final String name, @NotNull final InetAddress ipAddress, @NotNull final InetAddress rawAddress, @NotNull final UUID uniqueId, @NotNull PlayerProfile profile) {
         super(true);
         this.profile = profile;
         // Paper end
@@ -57,6 +74,7 @@ public class AsyncPlayerPreLoginEvent extends Event {
         this.message = net.kyori.adventure.text.Component.empty(); // Paper
         //this.name = name; // Paper - Not used anymore
         this.ipAddress = ipAddress;
+        this.rawAddress = rawAddress; // Paper
         //this.uniqueId = uniqueId; // Paper - Not used anymore
     }
 
