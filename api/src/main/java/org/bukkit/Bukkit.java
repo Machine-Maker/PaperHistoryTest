@@ -2374,6 +2374,14 @@ public final class Bukkit {
     public static com.destroystokyo.paper.entity.ai.MobGoals getMobGoals() {
         return server.getMobGoals();
     }
+
+    /**
+     * @return the datapack manager
+     */
+    @NotNull
+    public static io.papermc.paper.datapack.DatapackManager getDatapackManager() {
+        return server.getDatapackManager();
+    }
     // Paper end
 
     @NotNull
