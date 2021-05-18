@@ -258,6 +258,7 @@ public final class SimplePluginManager implements PluginManager {
 
                 if (dependencies.containsKey(plugin)) {
                     Iterator<String> dependencyIterator = dependencies.get(plugin).iterator();
+                    final Set<String> missingHardDependencies = new HashSet<>(dependencies.get(plugin).size()); // Paper - list all missing hard depends
 
                     while (dependencyIterator.hasNext()) {
                         String dependency = dependencyIterator.next();
@@ -268,6 +269,12 @@ public final class SimplePluginManager implements PluginManager {
 
                         // We have a dependency not found
                         } else if (!plugins.containsKey(dependency) && !pluginsProvided.containsKey(dependency)) {
+                            // Paper start
+                            missingHardDependencies.add(dependency);
+                        }
+                    }
+                    if (!missingHardDependencies.isEmpty()) {
+                            // Paper end
                             missingDependency = false;
                             pluginIterator.remove();
                             softDependencies.remove(plugin);
@@ -276,9 +283,7 @@ public final class SimplePluginManager implements PluginManager {
                             server.getLogger().log(
                                 Level.SEVERE,
                                 "Could not load '" + entry.getValue().getPath() + "' in folder '" + entry.getValue().getParentFile().getPath() + "'", // Paper
-                                new UnknownDependencyException("Unknown dependency " + dependency + ". Please download and install " + dependency + " to run this plugin."));
-                            break;
-                        }
+                                new UnknownDependencyException(missingHardDependencies, plugin)); // Paper
                     }
 
                     if (dependencies.containsKey(plugin) && dependencies.get(plugin).isEmpty()) {

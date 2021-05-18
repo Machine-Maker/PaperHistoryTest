@@ -132,13 +132,19 @@ public final class JavaPluginLoader implements PluginLoader {
             ));
         }
 
+        Set<String> missingHardDependencies = new HashSet<>(description.getDepend().size()); // Paper - list all missing hard depends
         for (final String pluginName : description.getDepend()) {
             Plugin current = server.getPluginManager().getPlugin(pluginName);
 
             if (current == null) {
-                throw new UnknownDependencyException("Unknown dependency " + pluginName + ". Please download and install " + pluginName + " to run this plugin.");
+                missingHardDependencies.add(pluginName); // Paper - list all missing hard depends
             }
         }
+        // Paper start - list all missing hard depends
+        if (!missingHardDependencies.isEmpty()) {
+            throw new UnknownDependencyException(missingHardDependencies, description.getFullName());
+        }
+        // Paper end
 
         server.getUnsafe().checkSupported(description);
 
