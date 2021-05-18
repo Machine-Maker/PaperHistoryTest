@@ -111,6 +111,12 @@ public final class SimplePluginManager implements PluginManager {
     @Override
     @NotNull
     public Plugin[] loadPlugins(@NotNull File directory) {
+        // Paper start - extra jars
+        return this.loadPlugins(directory, java.util.Collections.emptyList());
+    }
+    @NotNull
+    public Plugin[] loadPlugins(final @NotNull File directory, final @NotNull List<File> extraPluginJars) {
+        // Paper end
         Preconditions.checkArgument(directory != null, "Directory cannot be null");
         Preconditions.checkArgument(directory.isDirectory(), "Directory must be a directory");
 
@@ -128,7 +134,11 @@ public final class SimplePluginManager implements PluginManager {
         Map<String, Collection<String>> softDependencies = new HashMap<String, Collection<String>>();
 
         // This is where it figures out all possible plugins
-        for (File file : directory.listFiles()) {
+        // Paper start - extra jars
+        final List<File> pluginJars = new ArrayList<>(java.util.Arrays.asList(directory.listFiles()));
+        pluginJars.addAll(extraPluginJars);
+        for (File file : pluginJars) {
+            // Paper end
             PluginLoader loader = null;
             for (Pattern filter : filters) {
                 Matcher match = filter.matcher(file.getName());
@@ -144,14 +154,14 @@ public final class SimplePluginManager implements PluginManager {
                 description = loader.getPluginDescription(file);
                 String name = description.getName();
                 if (name.equalsIgnoreCase("bukkit") || name.equalsIgnoreCase("minecraft") || name.equalsIgnoreCase("mojang")) {
-                    server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "': Restricted Name");
+                    server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "': Restricted Name"); // Paper
                     continue;
                 } else if (description.rawName.indexOf(' ') != -1) {
-                    server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "': uses the space-character (0x20) in its name");
+                    server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "': uses the space-character (0x20) in its name"); // Paper
                     continue;
                 }
             } catch (InvalidDescriptionException ex) {
-                server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "'", ex);
+                server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "'", ex); // Paper
                 continue;
             }
 
@@ -162,7 +172,7 @@ public final class SimplePluginManager implements PluginManager {
                     description.getName(),
                     file.getPath(),
                     replacedFile.getPath(),
-                    directory.getPath()
+                    file.getParentFile().getPath() // Paper
                 ));
             }
 
@@ -183,7 +193,7 @@ public final class SimplePluginManager implements PluginManager {
                             file.getPath(),
                             provided,
                             pluginFile.getPath(),
-                            directory.getPath()
+                            file.getParentFile().getPath() // Paper
                     ));
                 } else {
                     String replacedPlugin = pluginsProvided.put(provided, description.getName());
@@ -265,7 +275,7 @@ public final class SimplePluginManager implements PluginManager {
 
                             server.getLogger().log(
                                 Level.SEVERE,
-                                "Could not load '" + entry.getValue().getPath() + "' in folder '" + directory.getPath() + "'",
+                                "Could not load '" + entry.getValue().getPath() + "' in folder '" + entry.getValue().getParentFile().getPath() + "'", // Paper
                                 new UnknownDependencyException("Unknown dependency " + dependency + ". Please download and install " + dependency + " to run this plugin."));
                             break;
                         }
@@ -304,11 +314,11 @@ public final class SimplePluginManager implements PluginManager {
                             loadedPlugins.add(loadedPlugin.getName());
                             loadedPlugins.addAll(loadedPlugin.getDescription().getProvides());
                         } else {
-                            server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "'");
+                            server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "'"); // Paper
                         }
                         continue;
                     } catch (InvalidPluginException ex) {
-                        server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "'", ex);
+                        server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "'", ex); // Paper
                     }
                 }
             }
@@ -335,11 +345,11 @@ public final class SimplePluginManager implements PluginManager {
                                 loadedPlugins.add(loadedPlugin.getName());
                                 loadedPlugins.addAll(loadedPlugin.getDescription().getProvides());
                             } else {
-                                server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "'");
+                                server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "'"); // Paper
                             }
                             break;
                         } catch (InvalidPluginException ex) {
-                            server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "'", ex);
+                            server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "'", ex); // Paper
                         }
                     }
                 }
@@ -352,7 +362,7 @@ public final class SimplePluginManager implements PluginManager {
                     while (failedPluginIterator.hasNext()) {
                         File file = failedPluginIterator.next();
                         failedPluginIterator.remove();
-                        server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + directory.getPath() + "': circular dependency detected");
+                        server.getLogger().log(Level.SEVERE, "Could not load '" + file.getPath() + "' in folder '" + file.getParentFile().getPath() + "': circular dependency detected"); // Paper
                     }
                 }
             }
