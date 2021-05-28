@@ -216,6 +216,25 @@ public interface Registry<T extends Keyed> extends Iterable<T> {
      * @see io.papermc.paper.world.structure.ConfiguredStructure
      */
     Registry<io.papermc.paper.world.structure.ConfiguredStructure> CONFIGURED_STRUCTURE = Bukkit.getRegistry(io.papermc.paper.world.structure.ConfiguredStructure.class);
+    /**
+     * Potion effect types.
+     *
+     * @see org.bukkit.potion.PotionEffectType
+     */
+    Registry<org.bukkit.potion.PotionEffectType> POTION_EFFECT_TYPE = new Registry<org.bukkit.potion.PotionEffectType>() {
+
+        @Nullable
+        @Override
+        public org.bukkit.potion.PotionEffectType get(@NotNull NamespacedKey key) {
+            return org.bukkit.potion.PotionEffectType.getByKey(key);
+        }
+
+        @NotNull
+        @Override
+        public Iterator<org.bukkit.potion.PotionEffectType> iterator() {
+            return Arrays.stream(org.bukkit.potion.PotionEffectType.values()).iterator();
+        }
+    };
     // Paper end
 
     /**
