@@ -54,4 +54,36 @@ public interface Enderman extends Monster {
      * @param blockData data to set the carried block to, or null to remove
      */
     public void setCarriedBlock(@Nullable BlockData blockData);
+
+    // Paper start
+    /**
+     * Returns whether the enderman is screaming/angry.
+     *
+     * @return whether the enderman is screaming
+     */
+    boolean isScreaming();
+
+    /**
+     * Sets whether the enderman is screaming/angry.
+     *
+     * @param screaming whether the enderman is screaming
+     */
+    void setScreaming(boolean screaming);
+
+    /**
+     * Returns whether the enderman has been stared at.
+     * If set to true, players will hear an ambient sound.
+     *
+     * @return whether the enderman has been stared at
+     */
+    boolean hasBeenStaredAt();
+
+    /**
+     * Sets whether the enderman has been stared at.
+     * If set to true, players will hear an ambient sound.
+     *
+     * @param hasBeenStaredAt whether the enderman has been stared at
+     */
+    void setHasBeenStaredAt(boolean hasBeenStaredAt);
+    // Paper end
 }

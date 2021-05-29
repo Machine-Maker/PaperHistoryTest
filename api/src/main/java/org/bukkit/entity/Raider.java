@@ -47,4 +47,20 @@ public interface Raider extends Monster {
      * @param join CanJoinRaid status
      */
     void setCanJoinRaid(boolean join);
+
+    // Paper start
+    /**
+     * Returns whether the raider is celebrating a raid victory.
+     *
+     * @return whether the raider is celebrating a raid victory
+     */
+    boolean isCelebrating();
+
+    /**
+     * Sets whether the raider is celebrating a raid victory.
+     *
+     * @param celebrating whether the raider is celebrating a raid victory
+     */
+    void setCelebrating(boolean celebrating);
+    // Paper end
 }

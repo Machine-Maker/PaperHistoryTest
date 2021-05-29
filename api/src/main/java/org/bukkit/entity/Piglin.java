@@ -90,4 +90,25 @@ public interface Piglin extends PiglinAbstract, InventoryHolder, com.destroystok
      */
     @NotNull
     public Set<Material> getBarterList();
+
+    // Paper start
+    /**
+     * Causes the piglin to appear as if they are charging
+     * a crossbow.
+     * <p>
+     * This works with any item currently held in the piglin's hand.
+     *
+     * @param chargingCrossbow is charging
+     */
+    void setChargingCrossbow(boolean chargingCrossbow);
+
+    /**
+     * Gets if the piglin is currently charging the
+     * item in their hand.
+     *
+     * @return is charging
+     */
+    boolean isChargingCrossbow();
+    // Paper end
+
 }
