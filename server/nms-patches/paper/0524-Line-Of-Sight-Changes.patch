@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: TwoLeggedCat <80929284+TwoLeggedCat@users.noreply.github.com>
+Date: Sat, 29 May 2021 14:33:25 -0500
+Subject: [PATCH] Line Of Sight Changes
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index 644d71c024103c39d7532559c810038d687106e5..2694f7af35deff5c94929350589b2564f7bbdeff 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -3484,7 +3484,8 @@ public abstract class LivingEntity extends Entity {
+             Vec3 vec3d = new Vec3(this.getX(), this.getEyeY(), this.getZ());
+             Vec3 vec3d1 = new Vec3(entity.getX(), entity.getEyeY(), entity.getZ());
+ 
+-            return vec3d1.distanceTo(vec3d) > 128.0D ? false : this.level.clip(new ClipContext(vec3d, vec3d1, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS;
++            // Paper - diff on change - used in CraftLivingEntity#hasLineOfSight(Location) and CraftWorld#lineOfSightExists
++            return vec3d1.distanceToSqr(vec3d) > 128D * 128D ? false : this.level.clip(new ClipContext(vec3d, vec3d1, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this)).getType() == HitResult.Type.MISS; // Paper - use distanceToSqr
+         }
+     }
+ 
