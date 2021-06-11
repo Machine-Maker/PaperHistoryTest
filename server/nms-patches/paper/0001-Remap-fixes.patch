@@ -1,0 +1,92 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kyle Wood <kyle@denwav.dev>
+Date: Fri, 11 Jun 2021 05:25:03 -0500
+Subject: [PATCH] Remap fixes
+
+
+diff --git a/src/main/java/net/minecraft/core/BlockPos.java b/src/main/java/net/minecraft/core/BlockPos.java
+index 700fd7f0ef6ba5798389b41a52f887e76917893d..eabf34265470e68b56c0d8787a7acffcf9b49e83 100644
+--- a/src/main/java/net/minecraft/core/BlockPos.java
++++ b/src/main/java/net/minecraft/core/BlockPos.java
+@@ -270,9 +270,11 @@ public class BlockPos extends Vec3i {
+ 
+     public static Iterable<BlockPos> withinManhattan(BlockPos center, int rangeX, int rangeY, int rangeZ) {
+         int i = rangeX + rangeY + rangeZ;
+-        int j = center.getX();
+-        int k = center.getY();
+-        int l = center.getZ();
++        // Paper start - rename variables to fix conflict with anonymous class (remap fix)
++        int centerX = center.getX();
++        int centerY = center.getY();
++        int centerZ = center.getZ();
++        // Paper end
+         return () -> {
+             return new AbstractIterator<BlockPos>() {
+                 private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+@@ -287,7 +289,7 @@ public class BlockPos extends Vec3i {
+                 protected BlockPos computeNext() {
+                     if (this.zMirror) {
+                         this.zMirror = false;
+-                        this.cursor.setZ(l - (this.cursor.getZ() - l));
++                        this.cursor.setZ(centerZ - (this.cursor.getZ() - centerZ)); // Paper - remap fix
+                         return this.cursor;
+                     } else {
+                         BlockPos blockPos;
+@@ -313,7 +315,7 @@ public class BlockPos extends Vec3i {
+                             int k = this.currentDepth - Math.abs(i) - Math.abs(j);
+                             if (k <= rangeZ) {
+                                 this.zMirror = k != 0;
+-                                blockPos = this.cursor.set(j + i, k + j, l + k);
++                                blockPos = this.cursor.set(centerX + i, centerY + j, centerZ + k); // Paper - remap fix
+                             }
+                         }
+ 
+diff --git a/src/main/java/net/minecraft/server/commands/SummonCommand.java b/src/main/java/net/minecraft/server/commands/SummonCommand.java
+index da83a40a74b291879d236ffccf36ee7a626a811e..556c4fe8d0d044c2995533f4f20cbde7283a2711 100644
+--- a/src/main/java/net/minecraft/server/commands/SummonCommand.java
++++ b/src/main/java/net/minecraft/server/commands/SummonCommand.java
+@@ -53,9 +53,9 @@ public class SummonCommand {
+ 
+             nbttagcompound1.putString("id", entity.toString());
+             ServerLevel worldserver = source.getLevel();
+-            Entity entity1 = EntityType.loadEntityRecursive(nbttagcompound1, worldserver, (entity1) -> {
+-                entity1.moveTo(pos.x, pos.y, pos.z, entity1.getYRot(), entity1.getXRot());
+-                return entity1;
++            Entity entity1 = EntityType.loadEntityRecursive(nbttagcompound1, worldserver, (loadedEntity) -> { // Paper - remap fix
++                loadedEntity.moveTo(pos.x, pos.y, pos.z, loadedEntity.getYRot(), loadedEntity.getXRot()); // Paper - remap fix
++                return loadedEntity; // Paper - remap fix
+             });
+ 
+             if (entity1 == null) {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtils.java b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtils.java
+index b2e9418aaf2b2c87f396304287595e519e72e3ad..098253e92bd95159de93fbbdf95daee341fc5752 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtils.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtils.java
+@@ -174,11 +174,11 @@ public class BehaviorUtils {
+ 
+         return optional.map((uuid) -> {
+             return ((ServerLevel) entity.level).getEntity(uuid);
+-        }).map((entity) -> {
++        }).map((entity1) -> { // Paper - remap fix
+             LivingEntity entityliving1;
+ 
+-            if (entity instanceof LivingEntity) {
+-                LivingEntity entityliving2 = (LivingEntity) entity;
++            if (entity1 instanceof LivingEntity) { // Paper - remap fix
++                LivingEntity entityliving2 = (LivingEntity) entity1; // Paper - remap fix
+ 
+                 entityliving1 = entityliving2;
+             } else {
+diff --git a/src/main/java/net/minecraft/world/item/crafting/RecipeManager.java b/src/main/java/net/minecraft/world/item/crafting/RecipeManager.java
+index 228e402a4efb6289fba58df3c0eac4cc608d4596..17c72a767e7b749ed78a9b54af19bae5381b296c 100644
+--- a/src/main/java/net/minecraft/world/item/crafting/RecipeManager.java
++++ b/src/main/java/net/minecraft/world/item/crafting/RecipeManager.java
+@@ -192,7 +192,7 @@ public class RecipeManager extends SimpleJsonResourceReloadListener {
+         Builder<ResourceLocation, Recipe<?>> builder = ImmutableMap.builder();
+ 
+         recipes.forEach((irecipe) -> {
+-            Map<ResourceLocation, Recipe<?>> map1 = (Map) map.computeIfAbsent(irecipe.getType(), (recipes) -> {
++            Map<ResourceLocation, Recipe<?>> map1 = (Map) map.computeIfAbsent(irecipe.getType(), (recipes_) -> { // Paper - remap fix
+                 return new Object2ObjectLinkedOpenHashMap<>(); // CraftBukkit
+             });
+             ResourceLocation minecraftkey = irecipe.getId();
