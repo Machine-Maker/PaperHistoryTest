@@ -240,7 +240,7 @@ public class VersionCommand extends BukkitCommand {
     private void setVersionMessage(final @NotNull net.kyori.adventure.text.Component msg) {
         lastCheck = System.currentTimeMillis();
         final net.kyori.adventure.text.Component message = net.kyori.adventure.text.TextComponent.ofChildren(
-            net.kyori.adventure.text.Component.text("This server is running " + Bukkit.getName() + " version " + Bukkit.getVersion() + " (Implementing API version " + Bukkit.getBukkitVersion() + ")", net.kyori.adventure.text.format.NamedTextColor.WHITE),
+            net.kyori.adventure.text.Component.text(Bukkit.getVersionMessage(), net.kyori.adventure.text.format.NamedTextColor.WHITE),
             net.kyori.adventure.text.Component.newline(),
             msg
         );

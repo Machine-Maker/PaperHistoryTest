@@ -53,6 +53,7 @@ import org.bukkit.util.CachedServerIcon;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import io.papermc.paper.util.JarManifests; // Paper
 
 /**
  * Represents the Bukkit core, for version and Server singleton handling
@@ -102,7 +103,25 @@ public final class Bukkit {
         }
 
         Bukkit.server = server;
-        server.getLogger().info("This server is running " + getName() + " version " + getVersion() + " (Implementing API version " + getBukkitVersion() + ")");
+        // Paper start - add git information
+        server.getLogger().info(getVersionMessage());
+    }
+    /**
+      * Gets message describing the version server is running.
+      *
+      * @return message describing the version server is running
+      */
+    @NotNull
+    public static String getVersionMessage() {
+        final var manifest = JarManifests.manifest(Bukkit.getServer().getClass());
+        final String gitBranch = manifest == null ? null : manifest.getMainAttributes().getValue("Git-Branch");
+        final String gitCommit = manifest == null ? null : manifest.getMainAttributes().getValue("Git-Commit");
+        String branchMsg = " on " + gitBranch;
+        if ("master".equals(gitBranch) || "main".equals(gitBranch)) {
+            branchMsg = "";  // Don't show branch on main/master
+        }
+        return "This server is running " + getName() + " version " + getVersion() + " (Implementing API version " + getBukkitVersion() + ") (Git: " + gitCommit + branchMsg + ")";
+        // Paper end
     }
 
     /**
