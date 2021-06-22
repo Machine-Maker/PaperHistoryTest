@@ -58,4 +58,16 @@ public abstract class CraftRaider extends CraftMonster implements Raider {
     public void setCanJoinRaid(boolean join) {
         this.getHandle().setCanJoinRaid(join);
     }
+
+    // Paper start
+    @Override
+    public boolean isCelebrating() {
+        return this.getHandle().isCelebrating();
+    }
+
+    @Override
+    public void setCelebrating(boolean celebrating) {
+        this.getHandle().setCelebrating(celebrating);
+    }
+    // Paper end
 }

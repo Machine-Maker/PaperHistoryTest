@@ -1,0 +1,171 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Owen1212055 <23108066+Owen1212055@users.noreply.github.com>
+Date: Mon, 21 Jun 2021 23:56:07 -0400
+Subject: [PATCH] Missing Entity Behavior API
+
+Co-authored-by: Nassim Jahnke <nassim@njahnke.dev>
+Co-authored-by: Jake Potrebic <jake.m.potrebic@gmail.com>
+
+diff --git a/src/main/java/net/minecraft/world/entity/animal/Bee.java b/src/main/java/net/minecraft/world/entity/animal/Bee.java
+index d13f3460644f635ded96bf92ddf9ecf8984c8e47..bd048cc30046f19f9eee89c6ba45d0816a160e67 100644
+--- a/src/main/java/net/minecraft/world/entity/animal/Bee.java
++++ b/src/main/java/net/minecraft/world/entity/animal/Bee.java
+@@ -540,11 +540,13 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
+         this.setFlag(4, hasStung);
+     }
+ 
++    public net.kyori.adventure.util.TriState rollingOverride = net.kyori.adventure.util.TriState.NOT_SET; // Paper - Rolling override
+     public boolean isRolling() {
+         return this.getFlag(2);
+     }
+ 
+     public void setRolling(boolean nearTarget) {
++        nearTarget = rollingOverride.toBooleanOrElse(nearTarget); // Paper - Rolling override
+         this.setFlag(2, nearTarget);
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java b/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java
+index 04a119e6641898454253e2478bc1b4dff181b5ee..a8da601b8342aa6e4902b452eb588c76c98a7adf 100644
+--- a/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java
++++ b/src/main/java/net/minecraft/world/entity/animal/horse/AbstractHorse.java
+@@ -663,6 +663,14 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
+ 
+     }
+ 
++    // Paper Start - Horse API
++    public void setMouthOpen(boolean open) {
++        this.setFlag(FLAG_OPEN_MOUTH, open);
++    }
++    public boolean isMouthOpen() {
++        return this.getFlag(FLAG_OPEN_MOUTH);
++    }
++    // Paper End - Horse API
+     private void openMouth() {
+         if (!this.level.isClientSide) {
+             this.mouthCounter = 1;
+@@ -675,6 +683,11 @@ public abstract class AbstractHorse extends Animal implements ContainerListener,
+         this.setFlag(16, eatingGrass);
+     }
+ 
++    // Paper Start - Horse API
++    public void setForceStanding(boolean standing) {
++        this.setFlag(FLAG_STANDING, standing);
++    }
++    // Paper End - Horse API
+     public void setStanding(boolean angry) {
+         if (angry) {
+             this.setEating(false);
+diff --git a/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java b/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
+index 32b302aad0319ce3ee412912425c1c8db9979f8a..92734f767fde60351a179a88350a97b861be0e88 100644
+--- a/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
++++ b/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
+@@ -84,6 +84,11 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
+         return entityliving.getMobType() != MobType.UNDEAD && entityliving.attackable();
+     };
+     private static final TargetingConditions TARGETING_CONDITIONS = TargetingConditions.forCombat().range(20.0D).selector(WitherBoss.LIVING_ENTITY_SELECTOR);
++    // Paper start
++    private boolean canPortal = false;
++
++    public void setCanTravelThroughPortals(boolean canPortal) { this.canPortal = canPortal; }
++    // Paper end
+ 
+     public WitherBoss(EntityType<? extends WitherBoss> type, Level world) {
+         super(type, world);
+@@ -602,7 +607,7 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
+ 
+     @Override
+     public boolean canChangeDimensions() {
+-        return false;
++        return super.canChangeDimensions() && canPortal; // Paper
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
+index e0e32528ed9f2f494b5ee2079c3167021f2e84c4..f22e615dba31619c97bf58930da060476a52facf 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
++++ b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
+@@ -433,6 +433,16 @@ public class EnderMan extends Monster implements NeutralMob {
+         this.entityData.set(EnderMan.DATA_STARED_AT, true);
+     }
+ 
++    // Paper start
++    public void setCreepy(boolean creepy) {
++        this.entityData.set(EnderMan.DATA_CREEPY, creepy);
++    }
++
++    public void setHasBeenStaredAt(boolean hasBeenStaredAt) {
++        this.entityData.set(EnderMan.DATA_STARED_AT, hasBeenStaredAt);
++    }
++    // Paper end
++
+     @Override
+     public boolean requiresCustomPersistence() {
+         return super.requiresCustomPersistence() || this.getCarriedBlock() != null;
+diff --git a/src/main/java/net/minecraft/world/entity/monster/Ghast.java b/src/main/java/net/minecraft/world/entity/monster/Ghast.java
+index 1f3506d38894fea224f3b2f125b45c3b68d705c7..bb2cb17e4e5ce142eeec18951c8948e3d6b3209c 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/Ghast.java
++++ b/src/main/java/net/minecraft/world/entity/monster/Ghast.java
+@@ -66,6 +66,12 @@ public class Ghast extends FlyingMob implements Enemy {
+         return this.explosionPower;
+     }
+ 
++    // Paper start
++    public void setExplosionPower(int explosionPower) {
++        this.explosionPower = explosionPower;
++    }
++    // Paper end
++
+     @Override
+     protected boolean shouldDespawnInPeaceful() {
+         return true;
+diff --git a/src/main/java/net/minecraft/world/entity/monster/ZombieVillager.java b/src/main/java/net/minecraft/world/entity/monster/ZombieVillager.java
+index e93a2634cd80cd4f1caf6bd60e569783bc6b577c..fb0a77b4cf1ba47c73c00993bd9b7454240fe5d6 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/ZombieVillager.java
++++ b/src/main/java/net/minecraft/world/entity/monster/ZombieVillager.java
+@@ -197,6 +197,12 @@ public class ZombieVillager extends Zombie implements VillagerDataHolder {
+     }
+ 
+     public void startConverting(@Nullable UUID uuid, int delay) {
++    // Paper start - missing entity behaviour api - converting without entity event
++        this.startConverting(uuid, delay, true);
++    }
++
++    public void startConverting(@Nullable UUID uuid, int delay, boolean broadcastEntityEvent) {
++    // Paper end - missing entity behaviour api - converting without entity event
+         this.conversionStarter = uuid;
+         this.villagerConversionTime = delay;
+         this.getEntityData().set(ZombieVillager.DATA_CONVERTING_ID, true);
+@@ -204,7 +210,7 @@ public class ZombieVillager extends Zombie implements VillagerDataHolder {
+         this.removeEffect(MobEffects.WEAKNESS, org.bukkit.event.entity.EntityPotionEffectEvent.Cause.CONVERSION);
+         this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, delay, Math.min(this.level.getDifficulty().getId() - 1, 0)), org.bukkit.event.entity.EntityPotionEffectEvent.Cause.CONVERSION);
+         // CraftBukkit end
+-        this.level.broadcastEntityEvent(this, (byte) 16);
++        if (broadcastEntityEvent) this.level.broadcastEntityEvent(this, (byte) 16); // Paper - missing entity behaviour api - converting without entity event
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/ThrownTrident.java b/src/main/java/net/minecraft/world/entity/projectile/ThrownTrident.java
+index a367f50b0e3fe9e7a1b87892a8c98e88bd678f6f..1b31b32d42eeb54680b902cd7e82d10ba7daa5d0 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/ThrownTrident.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/ThrownTrident.java
+@@ -105,6 +105,20 @@ public class ThrownTrident extends AbstractArrow {
+         return (Boolean) this.entityData.get(ThrownTrident.ID_FOIL);
+     }
+ 
++    // Paper start
++    public void setFoil(boolean foil) {
++        this.entityData.set(ThrownTrident.ID_FOIL, foil);
++    }
++
++    public int getLoyalty() {
++        return this.entityData.get(ThrownTrident.ID_LOYALTY);
++    }
++
++    public void setLoyalty(byte loyalty) {
++        this.entityData.set(ThrownTrident.ID_LOYALTY, loyalty);
++    }
++    // Paper end
++
+     @Nullable
+     @Override
+     protected EntityHitResult findHitEntity(Vec3 currentPosition, Vec3 nextPosition) {
