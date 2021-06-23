@@ -335,6 +335,36 @@ public interface LivingEntity extends Attributable, Damageable, ProjectileSource
      */
     public void setArrowsInBody(int count);
 
+    // Paper Start - Bee Stinger API
+    /**
+     * Gets the time in ticks until the next bee stinger leaves the entity's body.
+     *
+     * @return ticks until bee stinger leaves
+     */
+    public int getBeeStingerCooldown();
+
+    /**
+     * Sets the time in ticks until the next stinger leaves the entity's body.
+     *
+     * @param ticks time until bee stinger leaves
+     */
+    public void setBeeStingerCooldown(int ticks);
+
+    /**
+     * Gets the amount of bee stingers in an entity's body.
+     *
+     * @return amount of bee stingers in body
+     */
+    public int getBeeStingersInBody();
+
+    /**
+     * Set the amount of bee stingers in the entity's body.
+     *
+     * @param count amount of bee stingers in entity's body
+     */
+    public void setBeeStingersInBody(int count);
+    // Paper End - Stinger API
+
     /**
      * Returns the living entity's current maximum no damage ticks.
      * <p>
