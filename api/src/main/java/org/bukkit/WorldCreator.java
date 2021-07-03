@@ -22,6 +22,7 @@ public class WorldCreator {
     private boolean generateStructures = true;
     private String generatorSettings = "";
     private boolean hardcore = false;
+    private net.kyori.adventure.util.TriState keepSpawnLoaded = net.kyori.adventure.util.TriState.NOT_SET; // Paper
 
     /**
      * Creates an empty WorldCreationOptions for the given world name
@@ -573,4 +574,29 @@ public class WorldCreator {
 
         return result;
     }
+
+    // Paper start
+
+    /**
+     * Returns the current intent to keep the world loaded, @see {@link WorldCreator#keepSpawnLoaded(net.kyori.adventure.util.TriState)}
+     *
+     * @return the current tristate value
+     */
+    @NotNull
+    public net.kyori.adventure.util.TriState keepSpawnLoaded() {
+        return keepSpawnLoaded;
+    }
+
+    /**
+     * Controls if a world should be kept loaded or not, default (NOT_SET) will use the servers standard
+     * configuration, otherwise, will act as an override towards this setting
+     *
+     * @param keepSpawnLoaded the new value
+     */
+    public void keepSpawnLoaded(@NotNull net.kyori.adventure.util.TriState keepSpawnLoaded) {
+        java.util.Objects.requireNonNull(keepSpawnLoaded, "keepSpawnLoaded");
+        this.keepSpawnLoaded = keepSpawnLoaded;
+    }
+
+    // Paper end
 }
