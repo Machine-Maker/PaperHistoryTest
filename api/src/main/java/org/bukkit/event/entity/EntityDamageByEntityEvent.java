@@ -11,15 +11,40 @@ import org.jetbrains.annotations.NotNull;
 public class EntityDamageByEntityEvent extends EntityDamageEvent {
     private final Entity damager;
 
+    @Deprecated // Paper - add critical damage API
     public EntityDamageByEntityEvent(@NotNull final Entity damager, @NotNull final Entity damagee, @NotNull final DamageCause cause, final double damage) {
         super(damagee, cause, damage);
         this.damager = damager;
+        this.critical = false; // Paper - add critical damage API
     }
 
+    @Deprecated // Paper - add critical damage API
     public EntityDamageByEntityEvent(@NotNull final Entity damager, @NotNull final Entity damagee, @NotNull final DamageCause cause, @NotNull final Map<DamageModifier, Double> modifiers, @NotNull final Map<DamageModifier, ? extends Function<? super Double, Double>> modifierFunctions) {
+        // Paper start - add critical damage API
+        this(damager, damagee, cause, modifiers, modifierFunctions, false);
+    }
+
+    private final boolean critical;
+    public EntityDamageByEntityEvent(@NotNull final Entity damager, @NotNull final Entity damagee, @NotNull final DamageCause cause, @NotNull final Map<DamageModifier, Double> modifiers, @NotNull final Map<DamageModifier, ? extends Function<? super Double, Double>> modifierFunctions, boolean critical) {
+        // Paper end
         super(damagee, cause, modifiers, modifierFunctions);
         this.damager = damager;
+        // Paper start - add critical damage API
+        this.critical = critical;
     }
+
+    /**
+     * Shows this damage instance was critical.
+     * The damage instance can be critical if the attacking player met the respective conditions.
+     * Furthermore arrows may also cause a critical damage event if the arrow {@link org.bukkit.entity.AbstractArrow#isCritical()}.
+     *
+     * @return if the hit was critical.
+     * @see <a href="https://minecraft.fandom.com/wiki/Damage#Critical_hit">https://minecraft.fandom.com/wiki/Damage#Critical_hit</a>
+     */
+    public boolean isCritical() {
+        return this.critical;
+    }
+    // Paper end
 
     /**
      * Returns the entity that damaged the defender.
