@@ -446,5 +446,24 @@ public enum EntityType implements Keyed, net.kyori.adventure.translation.Transla
         Preconditions.checkArgument(this != UNKNOWN, "UNKNOWN entities do not have translation keys");
         return org.bukkit.Bukkit.getUnsafe().getTranslationKey(this);
     }
+
+    /**
+     * Checks if the entity has default attributes.
+     *
+     * @return true if it has default attributes
+     */
+    public boolean hasDefaultAttributes() {
+        return org.bukkit.Bukkit.getUnsafe().hasDefaultEntityAttributes(this.key);
+    }
+
+    /**
+     * Gets the default attributes for the entity.
+     *
+     * @return an unmodifiable instance of Attributable for reading default attributes.
+     * @throws IllegalArgumentException if the entity does not exist of have default attributes (use {@link #hasDefaultAttributes()} first)
+     */
+    public @NotNull org.bukkit.attribute.Attributable getDefaultAttributes() {
+        return org.bukkit.Bukkit.getUnsafe().getDefaultEntityAttributes(this.key);
+    }
     // Paper end
 }
