@@ -121,9 +121,76 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
      *
      * @param yaw the yaw
      * @param pitch the pitch
-     * @throws UnsupportedOperationException if used for players
      */
     public void setRotation(float yaw, float pitch);
+
+    // Paper start - Teleport API
+    /**
+     * Teleports this entity to the given location.
+     * <p>
+     * Note: Teleporting to a different world with ignorePassengers to true while the entity has entities riding it
+     * will cause this teleportation to return false and not occur.
+     *
+     * @param location New location to teleport this entity to
+     * @param ignorePassengers If all passengers should not be required to be removed prior to teleportation
+     * @return <code>true</code> if the teleport was successful
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    default boolean teleport(@NotNull Location location, boolean ignorePassengers) {
+        return this.teleport(location, TeleportCause.PLUGIN, ignorePassengers);
+    }
+
+    /**
+     * Teleports this entity to the given location.
+     * <p>
+     * Note: Teleporting to a different world with ignorePassengers to true while the entity has entities riding it
+     * will cause this teleportation to return false and not occur.
+     *
+     * @param location New location to teleport this entity to
+     * @param cause The cause of this teleportation
+     * @param ignorePassengers If all passengers should not be required to be removed prior to teleportation
+     * @return <code>true</code> if the teleport was successful
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    default boolean teleport(@NotNull Location location, @NotNull TeleportCause cause, boolean ignorePassengers) {
+        return this.teleport(location, cause, ignorePassengers, true);
+    }
+
+    /**
+     * Teleports this entity to the given location.
+     * <p>
+     * Note: Teleporting to a different world with ignorePassengers to true while the entity has entities riding it
+     * will cause this teleportation to return false and not occur.
+     * Note: Teleporting to a different world with dismount to false while this entity is riding another entity will
+     * cause this teleportation to return false and not occur.
+     *
+     * @param location New location to teleport this entity to
+     * @param ignorePassengers If all passengers should not be required to be removed prior to teleportation
+     * @param dismount If the entity should be dismounted if they are riding another entity
+     * @return <code>true</code> if the teleport was successful
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    default boolean teleport(@NotNull Location location, boolean ignorePassengers, boolean dismount) {
+        return this.teleport(location, TeleportCause.PLUGIN, ignorePassengers, dismount);
+    }
+
+    /**
+     * Teleports this entity to the given location.
+     * <p>
+     * Note: Teleporting to a different world with ignorePassengers to true while the entity has entities riding it
+     * will cause this teleportation to return false and not occur.
+     * Note: Teleporting to a different world with dismount to false while this entity is riding another entity will
+     * cause this teleportation to return false and not occur.
+     *
+     * @param location New location to teleport this entity to
+     * @param cause The cause of this teleportation
+     * @param ignorePassengers If all passengers should not be required to be removed prior to teleportation
+     * @param dismount If the entity should be dismounted if they are riding another entity
+     * @return <code>true</code> if the teleport was successful
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    boolean teleport(@NotNull Location location, @NotNull TeleportCause cause, boolean ignorePassengers, boolean dismount);
+    // Paper end - Teleport API
 
     /**
      * Teleports this entity to the given location. If this entity is riding a

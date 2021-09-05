@@ -2708,6 +2708,71 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
     String getClientBrandName();
     // Paper end
 
+    // Paper start - Teleport API
+    /**
+     * Sets the player's rotation.
+     *
+     * @param yaw the yaw
+     * @param pitch the pitch
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    void setRotation(float yaw, float pitch);
+
+    /**
+     * Teleports this entity to the given location.
+     * <p>
+     * Note: Teleporting to a different world with ignorePassengers to true while the entity has entities riding it
+     * will cause this teleportation to return false and not occur.
+     * Note: Teleporting to a different world with dismount to false while this entity is riding another entity will
+     * cause this teleportation to return false and not occur.
+     *
+     * <p>
+     * Relative teleportation flags are only used client side, and cause the player to not lose velocity in that
+     * specific coordinate. The location of the teleportation will not change.
+     *
+     * @param location New location to teleport this entity to
+     * @param cause The cause of this teleportation
+     * @param ignorePassengers If all passengers should not be required to be removed prior to teleportation
+     * @param dismount If the entity should be dismounted if they are riding another entity
+     * @param teleportFlags Coordinates of the location that the client should handle as relative teleportation
+     * @return <code>true</code> if the teleport was successful
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    boolean teleport(@NotNull Location location, @NotNull org.bukkit.event.player.PlayerTeleportEvent.TeleportCause cause, boolean ignorePassengers, boolean dismount, @NotNull io.papermc.paper.entity.RelativeTeleportFlag @NotNull... teleportFlags);
+
+    /**
+     * Causes the player to look towards the given position.
+     *
+     * @param x x coordinate
+     * @param y y coordinate
+     * @param z z coordinate
+     * @param playerAnchor What part of the player should face the given position
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    void lookAt(double x, double y, double z, @NotNull io.papermc.paper.entity.LookAnchor playerAnchor);
+
+    /**
+     * Causes the player to look towards the given location.
+     *
+     * @param location Location to look at
+     * @param playerAnchor What part of player should face the location
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    default void lookAt(@NotNull Location location, @NotNull io.papermc.paper.entity.LookAnchor playerAnchor) {
+        this.lookAt(location.getX(), location.getY(), location.getZ(), playerAnchor);
+    }
+
+    /**
+     * Causes the player to look towards the given entity.
+     *
+     * @param entity Entity to look at
+     * @param playerAnchor What part of the player should face the entity
+     * @param entityAnchor What part of the entity the player should face
+     */
+    @org.jetbrains.annotations.ApiStatus.Experimental
+    void lookAt(@NotNull org.bukkit.entity.Entity entity, @NotNull io.papermc.paper.entity.LookAnchor playerAnchor, @NotNull io.papermc.paper.entity.LookAnchor entityAnchor);
+    // Paper end - Teleport API
+
     @NotNull
     @Override
     Spigot spigot();
