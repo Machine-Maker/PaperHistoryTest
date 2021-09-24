@@ -22,6 +22,7 @@ public class AsyncPlayerPreLoginEvent extends Event {
     private final InetAddress ipAddress;
     private final InetAddress rawAddress; // Paper
     //private UUID uniqueId; // Paper - Not used anymore
+    private final String hostname; // Paper
 
     @Deprecated
     public AsyncPlayerPreLoginEvent(@NotNull final String name, @NotNull final InetAddress ipAddress) {
@@ -66,7 +67,14 @@ public class AsyncPlayerPreLoginEvent extends Event {
         this(name, ipAddress, ipAddress, uniqueId, profile);
     }
 
+    @Deprecated // Paper - Add hostname
     public AsyncPlayerPreLoginEvent(@NotNull final String name, @NotNull final InetAddress ipAddress, @NotNull final InetAddress rawAddress, @NotNull final UUID uniqueId, @NotNull PlayerProfile profile) {
+        // Paper start - Add hostname
+        this(name, ipAddress, rawAddress, uniqueId, profile, "");
+    }
+
+    public AsyncPlayerPreLoginEvent(@NotNull final String name, @NotNull final InetAddress ipAddress, @NotNull final InetAddress rawAddress, @NotNull final UUID uniqueId, @NotNull PlayerProfile profile, @NotNull String hostname) {
+        // Paper end - Add hostname
         super(true);
         this.profile = profile;
         // Paper end
@@ -76,6 +84,7 @@ public class AsyncPlayerPreLoginEvent extends Event {
         this.ipAddress = ipAddress;
         this.rawAddress = rawAddress; // Paper
         //this.uniqueId = uniqueId; // Paper - Not used anymore
+        this.hostname = hostname; // Paper - Add hostname
     }
 
     /**
@@ -260,6 +269,19 @@ public class AsyncPlayerPreLoginEvent extends Event {
     public UUID getUniqueId() {
         return profile.getId(); // Paper
     }
+
+    // Paper start
+    /**
+     * Gets the hostname that the player used to connect to the server, or
+     * blank if unknown
+     *
+     * @return The hostname
+     */
+    @NotNull
+    public String getHostname() {
+        return hostname;
+    }
+    // Paper end
 
     @NotNull
     @Override
