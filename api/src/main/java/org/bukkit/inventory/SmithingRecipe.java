@@ -13,6 +13,7 @@ public class SmithingRecipe implements Recipe, Keyed {
     private final ItemStack result;
     private final RecipeChoice base;
     private final RecipeChoice addition;
+    private final boolean copyNbt; // Paper
 
     /**
      * Create a smithing recipe to produce the specified result ItemStack.
@@ -23,6 +24,21 @@ public class SmithingRecipe implements Recipe, Keyed {
      * @param addition The addition ingredient
      */
     public SmithingRecipe(@NotNull NamespacedKey key, @NotNull ItemStack result, @NotNull RecipeChoice base, @NotNull RecipeChoice addition) {
+        // Paper start
+        this(key, result, base, addition, true);
+    }
+    /**
+     * Create a smithing recipe to produce the specified result ItemStack.
+     *
+     * @param key The unique recipe key
+     * @param result The item you want the recipe to create.
+     * @param base The base ingredient
+     * @param addition The addition ingredient
+     * @param copyNbt whether to copy the nbt from the input base item to the output
+     */
+    public SmithingRecipe(@NotNull NamespacedKey key, @NotNull ItemStack result, @NotNull RecipeChoice base, @NotNull RecipeChoice addition, boolean copyNbt) {
+        this.copyNbt = copyNbt;
+        // Paper end
         this.key = key;
         this.result = result;
         this.base = base;
@@ -60,4 +76,15 @@ public class SmithingRecipe implements Recipe, Keyed {
     public NamespacedKey getKey() {
         return this.key;
     }
+
+    // Paper start
+    /**
+     * Whether or not to copy the NBT of the input base item to the output.
+     *
+     * @return true to copy the NBT (default for vanilla smithing recipes)
+     */
+    public boolean willCopyNbt() {
+        return copyNbt;
+    }
+    // Paper end
 }
