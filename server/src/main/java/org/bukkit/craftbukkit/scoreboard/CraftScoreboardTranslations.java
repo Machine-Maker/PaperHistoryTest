@@ -7,7 +7,8 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.RenderType;
 
 public final class CraftScoreboardTranslations {
-    static final int MAX_DISPLAY_SLOT = 3;
+    static final int MAX_DISPLAY_SLOT = Scoreboard.getDisplaySlotNames().length; // Paper
+    @Deprecated // Paper
     static ImmutableBiMap<DisplaySlot, String> SLOTS = ImmutableBiMap.of(
             DisplaySlot.BELOW_NAME, "belowName",
             DisplaySlot.PLAYER_LIST, "list",
@@ -16,10 +17,12 @@ public final class CraftScoreboardTranslations {
     private CraftScoreboardTranslations() {}
 
     public static DisplaySlot toBukkitSlot(int i) {
+        if (true) return org.bukkit.scoreboard.DisplaySlot.NAMES.value(Scoreboard.getDisplaySlotName(i)); // Paper
         return CraftScoreboardTranslations.SLOTS.inverse().get(Scoreboard.getDisplaySlotName(i));
     }
 
     public static int fromBukkitSlot(DisplaySlot slot) {
+        if (true) return Scoreboard.getDisplaySlotByName(slot.getId()); // Paper
         return Scoreboard.getDisplaySlotByName(CraftScoreboardTranslations.SLOTS.get(slot));
     }
 
