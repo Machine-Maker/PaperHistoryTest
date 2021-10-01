@@ -277,6 +277,7 @@ public final class SimplePluginManager implements PluginManager {
                             // Paper end
                             missingDependency = false;
                             pluginIterator.remove();
+                            pluginsProvided.values().removeIf(s -> s.equals(plugin)); // Paper - remove provided plugins
                             softDependencies.remove(plugin);
                             dependencies.remove(plugin);
 
@@ -310,6 +311,7 @@ public final class SimplePluginManager implements PluginManager {
                     // We're clear to load, no more soft or hard dependencies left
                     File file = plugins.get(plugin);
                     pluginIterator.remove();
+                    pluginsProvided.values().removeIf(s -> s.equals(plugin)); // Paper - remove provided plugins
                     missingDependency = false;
 
                     try {
