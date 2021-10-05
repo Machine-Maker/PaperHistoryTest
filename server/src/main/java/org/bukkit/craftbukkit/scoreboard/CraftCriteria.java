@@ -37,7 +37,7 @@ final class CraftCriteria {
     }
 
     static CraftCriteria getFromNMS(Objective objective) {
-        return CraftCriteria.DEFAULTS.get(objective.getCriteria().getName());
+        return java.util.Objects.requireNonNullElseGet(CraftCriteria.DEFAULTS.get(objective.getCriteria().getName()), () -> new CraftCriteria(objective.getCriteria())); // Paper
     }
 
     static CraftCriteria getFromBukkit(String name) {
@@ -45,6 +45,12 @@ final class CraftCriteria {
         if (criteria != null) {
             return criteria;
         }
+        // Paper start - fix criteria defaults
+        var nmsCriteria = ObjectiveCriteria.byName(name);
+        if (nmsCriteria.isPresent()) {
+            return new CraftCriteria(nmsCriteria.get());
+        }
+        // Paper end
         return new CraftCriteria(name);
     }
 
