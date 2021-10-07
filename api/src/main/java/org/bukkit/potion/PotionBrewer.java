@@ -43,4 +43,25 @@ public interface PotionBrewer {
      */
     @NotNull
     public Collection<PotionEffect> getEffects(@NotNull PotionType type, boolean upgraded, boolean extended);
+
+    // Paper start
+    /**
+     * Adds a new potion mix recipe.
+     *
+     * @param potionMix the potion mix to add
+     */
+    void addPotionMix(@NotNull io.papermc.paper.potion.PotionMix potionMix);
+
+    /**
+     * Removes a potion mix recipe.
+     *
+     * @param key the key of the mix to remove
+     */
+    void removePotionMix(@NotNull org.bukkit.NamespacedKey key);
+
+    /**
+     * Resets potion mixes to their default, removing all custom ones.
+     */
+    void resetPotionMixes();
+    // Paper end
 }

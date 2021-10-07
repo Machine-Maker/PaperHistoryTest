@@ -2097,5 +2097,12 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
      */
     @NotNull
     io.papermc.paper.datapack.DatapackManager getDatapackManager();
+
+    /**
+     * Gets the potion brewer.
+     *
+     * @return the potion brewer
+     */
+    @NotNull org.bukkit.potion.PotionBrewer getPotionBrewer();
     // Paper end
 }
