@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jake Potrebic <jake.m.potrebic@gmail.com>
+Date: Wed, 6 Oct 2021 20:50:48 -0700
+Subject: [PATCH] Fix upstreams block state factories
+
+Sometimes, blocks are changed and then logic is called before the associated
+tile entity is removed. When this happens, the factories were relying on the
+block at the position, not the tile entity. This change prioritizes using the
+tile entity type to determine the block state factory and falls back on
+the material type of the block at that location.
+
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/BlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/BlockEntity.java
+index b0174aedb7358af1e80278e2f5f13e00c35ab3c6..d62181bd8bccfcfdd7da8f635bdf7ebc36294705 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/BlockEntity.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/BlockEntity.java
+@@ -250,7 +250,7 @@ public abstract class BlockEntity {
+         // Paper end
+         if (this.level == null) return null;
+         org.bukkit.block.Block block = this.level.getWorld().getBlockAt(this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ());
+-        if (block.getType() == org.bukkit.Material.AIR) return null;
++        // if (block.getType() == org.bukkit.Material.AIR) return null; // Paper - actually get the tile entity if it still exists
+         org.bukkit.block.BlockState state = block.getState(useSnapshot); // Paper
+         if (state instanceof InventoryHolder) return (InventoryHolder) state;
+         return null;
