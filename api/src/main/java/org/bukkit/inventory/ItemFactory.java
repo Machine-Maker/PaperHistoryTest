@@ -261,5 +261,14 @@ public interface ItemFactory {
     @NotNull
     @Deprecated
     net.md_5.bungee.api.chat.hover.content.Content hoverContentOf(@NotNull org.bukkit.entity.Entity entity, @NotNull net.md_5.bungee.api.chat.BaseComponent[] customName);
+
+    /**
+     * Get a spawn egg ItemStack from an EntityType
+     *
+     * @param type EntityType
+     * @return ItemStack spawner egg
+     */
+    @Nullable
+    ItemStack getSpawnEgg(@Nullable org.bukkit.entity.EntityType type);
     // Paper end
 }
