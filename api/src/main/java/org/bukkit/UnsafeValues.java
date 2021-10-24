@@ -112,6 +112,14 @@ public interface UnsafeValues {
 
     ItemStack deserializeItem(byte[] data);
 
+    byte[] serializeEntity(org.bukkit.entity.Entity entity);
+
+    default org.bukkit.entity.Entity deserializeEntity(byte[] data, World world) {
+        return deserializeEntity(data, world, false);
+    }
+
+    org.bukkit.entity.Entity deserializeEntity(byte[] data, World world, boolean preserveUUID);
+
     /**
      * Return the translation key for the Material, so the client can translate it into the active
      * locale when using a {@link net.kyori.adventure.text.TranslatableComponent}.
