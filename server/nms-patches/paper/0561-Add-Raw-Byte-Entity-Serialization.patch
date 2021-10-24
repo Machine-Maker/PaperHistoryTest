@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mariell Hoversholm <proximyst@proximyst.com>
+Date: Sun, 24 Oct 2021 16:20:31 -0400
+Subject: [PATCH] Add Raw Byte Entity Serialization
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 3f4436a2257376f604926ff35c8589ba59c859e2..6f3147713b5bec3b2771e1ec52917fd4aee681bc 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -1921,6 +1921,15 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+         }
+     }
+ 
++    // Paper start - Entity serialization api
++    public boolean serializeEntity(CompoundTag compound) {
++        List<Entity> pass = new java.util.ArrayList<>(this.getPassengers());
++        this.passengers = ImmutableList.of();
++        boolean result = save(compound);
++        this.passengers = ImmutableList.copyOf(pass);
++        return result;
++    }
++    // Paper end
+     public boolean save(CompoundTag nbt) {
+         return this.isPassenger() ? false : this.saveAsPassenger(nbt);
+     }
