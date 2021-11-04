@@ -4171,6 +4171,16 @@ public enum Material implements Keyed, net.kyori.adventure.translation.Translata
     public Multimap<Attribute, AttributeModifier> getItemAttributes(@NotNull EquipmentSlot equipmentSlot) {
         return Bukkit.getUnsafe().getItemAttributes(this, equipmentSlot);
     }
+
+    /**
+     * Checks if this material is collidable.
+     *
+     * @return true if collidable
+     * @throws IllegalArgumentException if {@link #isBlock()} is false
+     */
+    public boolean isCollidable() {
+        return Bukkit.getUnsafe().isCollidable(this);
+    }
     // Paper end
 
     /**

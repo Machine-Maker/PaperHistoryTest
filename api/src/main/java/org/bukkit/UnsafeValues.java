@@ -225,5 +225,14 @@ public interface UnsafeValues {
      * @throws IllegalArgumentException if the entity does not exist of have default attributes (use {@link #hasDefaultEntityAttributes(NamespacedKey)} first)
      */
     @org.jetbrains.annotations.NotNull org.bukkit.attribute.Attributable getDefaultEntityAttributes(@org.jetbrains.annotations.NotNull NamespacedKey entityKey);
+
+    /**
+     * Checks if this material is collidable.
+     *
+     * @param material the material to check
+     * @return true if collidable
+     * @throws IllegalArgumentException if {@link Material#isBlock()} is false
+     */
+    boolean isCollidable(@org.jetbrains.annotations.NotNull Material material);
     // Paper end
 }

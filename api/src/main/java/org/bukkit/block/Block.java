@@ -481,6 +481,13 @@ public interface Block extends Metadatable, net.kyori.adventure.translation.Tran
      * @return true if block is solid
      */
     boolean isSolid();
+
+    /**
+     * Checks if this block is collidable.
+     *
+     * @return true if collidable
+     */
+    boolean isCollidable();
     // Paper end
 
     /**
