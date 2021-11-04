@@ -140,9 +140,8 @@ public interface Objective {
      * @throws IllegalArgumentException if player is null
      * @throws IllegalStateException if this objective has been unregistered
      * @see #getScore(String)
-     * @deprecated Scoreboards can contain entries that aren't players
      */
-    @Deprecated
+    // @Deprecated // Paper
     @NotNull
     Score getScore(@NotNull OfflinePlayer player) throws IllegalArgumentException, IllegalStateException;
 
@@ -157,4 +156,16 @@ public interface Objective {
      */
     @NotNull
     Score getScore(@NotNull String entry) throws IllegalArgumentException, IllegalStateException;
+
+    // Paper start
+    /**
+     * Gets an entity's Score for an Objective on this Scoreboard.
+     *
+     * @param entity Entity for the Score
+     * @return Score tracking the Objective and entity specified
+     * @throws IllegalArgumentException if entity is null
+     * @throws IllegalStateException if this objective has been unregistered
+     */
+    @NotNull Score getScoreFor(@NotNull org.bukkit.entity.Entity entity) throws IllegalArgumentException, IllegalStateException;
+    // Paper end
 }

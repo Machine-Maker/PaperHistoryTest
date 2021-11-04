@@ -308,9 +308,8 @@ public interface Team {
      * @throws IllegalArgumentException if player is null
      * @throws IllegalStateException if this team has been unregistered
      * @see #addEntry(String)
-     * @deprecated Teams can contain entries that aren't players
      */
-    @Deprecated
+    // @Deprecated // Paper
     void addPlayer(@NotNull OfflinePlayer player) throws IllegalStateException, IllegalArgumentException;
 
     /**
@@ -332,9 +331,8 @@ public interface Team {
      * @throws IllegalArgumentException if player is null
      * @throws IllegalStateException if this team has been unregistered
      * @see #removeEntry(String)
-     * @deprecated Teams can contain entries that aren't players
      */
-    @Deprecated
+    // @Deprecated // Paper
     boolean removePlayer(@NotNull OfflinePlayer player) throws IllegalStateException, IllegalArgumentException;
 
     /**
@@ -362,9 +360,8 @@ public interface Team {
      * @throws IllegalArgumentException if player is null
      * @throws IllegalStateException if this team has been unregistered
      * @see #hasEntry(String)
-     * @deprecated Teams can contain entries that aren't players
      */
-    @Deprecated
+    // @Deprecated // Paper
     boolean hasPlayer(@NotNull OfflinePlayer player) throws IllegalArgumentException, IllegalStateException;
     /**
      * Checks to see if the specified entry is a member of this team.
@@ -394,6 +391,42 @@ public interface Team {
      * @throws IllegalStateException if this team has been unregistered
      */
     void setOption(@NotNull Option option, @NotNull OptionStatus status) throws IllegalStateException;
+
+    // Paper start
+    /**
+     * This puts the specified entity onto this team for the scoreboard.
+     * <p>
+     * This will remove the entity from any other team on the scoreboard.
+     *
+     * @param entity the entity to add
+     * @throws IllegalArgumentException if entity is null
+     * @throws IllegalStateException if this team has been unregistered
+     * @see #addEntry(String)
+     */
+    void addEntity(@NotNull org.bukkit.entity.Entity entity) throws IllegalStateException, IllegalArgumentException;
+
+    /**
+     * Removes the entity from this team.
+     *
+     * @param entity the entity to remove
+     * @return if the entity was on this team
+     * @throws IllegalArgumentException if entity is null
+     * @throws IllegalStateException if this team has been unregistered
+     * @see #removeEntry(String)
+     */
+    boolean removeEntity(@NotNull org.bukkit.entity.Entity entity) throws IllegalStateException, IllegalArgumentException;
+
+    /**
+     * Checks to see if the specified entity is a member of this team.
+     *
+     * @param entity the entity to search for
+     * @return true if the entity is a member of this team
+     * @throws IllegalArgumentException if entity is null
+     * @throws IllegalStateException if this team has been unregistered
+     * @see #hasEntry(String)
+     */
+    boolean hasEntity(@NotNull org.bukkit.entity.Entity entity) throws IllegalStateException, IllegalArgumentException;
+    // Paper end
 
     /**
      * Represents an option which may be applied to this team.
