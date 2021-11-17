@@ -1893,6 +1893,31 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      */
     public double getHealthScale();
 
+    // Paper start
+    /**
+     * Forcefully sends a health update to the player.
+     * <p>This method can cause the client to display health values
+     * different to their true server values. If the player takes damage or
+     * causes an action to otherwise cause a health update, these values
+     * will no longer be shown.</p>
+     * Setting the visible health to 0 will result in the client seeing
+     * the death screen, unable to press the respawn button.
+     * @see #sendHealthUpdate()
+     * @param health the health of the player
+     * @param foodLevel the food level of the player
+     * @param saturationLevel the saturation level of the player
+     */
+    public void sendHealthUpdate(final double health, final int foodLevel, final float saturationLevel);
+    
+    /**
+     * Forcefully sends a health update to the player.
+     * This uses the player's current health, saturation, and food level.
+     * <p>Use after {@link #setHealth(double)} to show the heart animation
+     * of gaining or losing health.</p>
+     */
+    public void sendHealthUpdate();
+    // Paper end
+    
     /**
      * Gets the entity which is followed by the camera when in
      * {@link GameMode#SPECTATOR}.
