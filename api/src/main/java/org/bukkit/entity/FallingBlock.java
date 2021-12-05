@@ -65,4 +65,23 @@ public interface FallingBlock extends Entity {
     default org.bukkit.Location getSourceLoc() {
         return this.getOrigin();
     }
+    // Paper Start - Auto expire setting
+    /**
+     * Sets if this falling block should expire after:
+     * - 30 seconds
+     * - 5 seconds and is outside of the world
+     *
+     * @return if this behavior occurs
+     */
+    boolean doesAutoExpire();
+
+    /**
+     * Sets if this falling block should expire after:
+     * - 30 seconds
+     * - 5 seconds and is outside of the world
+     *
+     * @param autoExpires if this behavior should occur
+     */
+    void shouldAutoExpire(boolean autoExpires);
+    // Paper End - Auto expire setting
 }
