@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * Raised when a vehicle collides with a block.
  */
 public class VehicleBlockCollisionEvent extends VehicleCollisionEvent {
-    private static final HandlerList handlers = new HandlerList();
+    // private static final HandlerList handlers = new HandlerList(); // Paper - move HandlerList to VehicleCollisionEvent
     private final Block block;
 
     public VehicleBlockCollisionEvent(@NotNull final Vehicle vehicle, @NotNull final Block block) {
@@ -25,16 +25,5 @@ public class VehicleBlockCollisionEvent extends VehicleCollisionEvent {
     @NotNull
     public Block getBlock() {
         return block;
-    }
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    @NotNull
-    public static HandlerList getHandlerList() {
-        return handlers;
     }
 }
