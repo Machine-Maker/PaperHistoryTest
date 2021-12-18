@@ -848,6 +848,18 @@ public interface Tag<T extends Keyed> extends Keyed {
      */
     @Deprecated(forRemoval = true)
     Tag<EntityType> SKELETONS = ENTITY_TYPES_SKELETONS;
+
+    String REGISTRY_GAME_EVENTS = "game_events";
+
+    /**
+     * Tag for game events that trigger sculk sensors
+     */
+    Tag<GameEvent> GAME_EVENT_VIBRATIONS = Bukkit.getTag(REGISTRY_GAME_EVENTS, NamespacedKey.minecraft("vibrations"), GameEvent.class);
+
+    /**
+     * Tag for game events that are ignored if the entity is sneaking
+     */
+    Tag<GameEvent> GAME_EVENT_IGNORE_VIBRATIONS_SNEAKING = Bukkit.getTag(REGISTRY_GAME_EVENTS, NamespacedKey.minecraft("ignore_vibrations_sneaking"), GameEvent.class);
     // Paper end
 
     /**
