@@ -600,6 +600,27 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      */
     public void sendBlockDamage(@NotNull Location loc, float progress);
 
+    // Paper start
+    /**
+     * Send multiple block changes. This fakes a multi block change packet for each
+     * chunk section that a block change occurs. This will not actually change the world in any way.
+     *
+     * @param blockChanges A map of the locations you want to change to their new block data
+     */
+    public default void sendMultiBlockChange(@NotNull java.util.Map<Location, BlockData> blockChanges) {
+        sendMultiBlockChange(blockChanges, false);
+    }
+
+    /**
+     * Send multiple block changes. This fakes a multi block change packet for each
+     * chunk section that a block change occurs. This will not actually change the world in any way.
+     *
+     * @param blockChanges A map of the locations you want to change to their new block data
+     * @param suppressLightUpdates Whether to suppress light updates or not
+     */
+    public void sendMultiBlockChange(@NotNull java.util.Map<Location, BlockData> blockChanges, boolean suppressLightUpdates);
+    // Paper end
+
     /**
      * Send the equipment change of an entity. This fakes the equipment change
      * of an entity for a user. This will not actually change the inventory of
