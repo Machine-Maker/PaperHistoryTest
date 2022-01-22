@@ -138,6 +138,7 @@ public final class SimplePluginManager implements PluginManager {
         final List<File> pluginJars = new ArrayList<>(java.util.Arrays.asList(directory.listFiles()));
         pluginJars.addAll(extraPluginJars);
         for (File file : pluginJars) {
+            if (file.getName().startsWith(".") && !extraPluginJars.contains(file)) continue; // Don't load plugin if the file name starts with a dot, except if it's a extra plugin jar.
             // Paper end
             PluginLoader loader = null;
             for (Pattern filter : filters) {
