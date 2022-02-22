@@ -1239,10 +1239,11 @@ public final class CraftServer implements Server {
             return null;
         }
 
+        console.levels.put(internal.dimension(), internal); // Paper - move up
         this.console.initWorld(internal, worlddata, worlddata, worlddata.worldGenSettings());
 
         internal.setSpawnSettings(true, true);
-        console.levels.put(internal.dimension(), internal);
+        // Paper - move up
 
         this.getServer().prepareLevels(internal.getChunkSource().chunkMap.progressListener, internal);
         internal.entityManager.tick(); // SPIGOT-6526: Load pending entities so they are available to the API
