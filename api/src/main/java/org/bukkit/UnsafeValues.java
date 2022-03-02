@@ -147,5 +147,15 @@ public interface UnsafeValues {
      * Use this when sending custom packets, so that there are no collisions on the client or server.
      */
     public int nextEntityId();
+
+    /**
+     * Gets the server-backed registry for a type.
+     *
+     * @param classOfT type
+     * @param <T> type
+     * @return the server-backed registry
+     * @throws IllegalArgumentException if there isn't a registry for that type
+     */
+    <T extends Keyed> @org.jetbrains.annotations.NotNull Registry<T> registryFor(Class<T> classOfT);
     // Paper end
 }
