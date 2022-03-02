@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jake Potrebic <jake.m.potrebic@gmail.com>
+Date: Wed, 2 Mar 2022 13:33:08 -0800
+Subject: [PATCH] Add PaperRegistry
+
+PaperRegistry is a server-backed impl of bukkit's Registry interface
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 68b681e2cae84ef715bcb3a6b508248e19a32bf0..83b25e0dd69b9795a1fdc757a7d0716fa045c623 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -2009,6 +2009,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             this.packRepository.setSelected(dataPacks);
+             this.worldData.setDataPackConfig(MinecraftServer.getSelectedPacks(this.packRepository));
+             this.resources.managers.updateRegistryTags(this.registryAccess());
++            io.papermc.paper.registry.PaperRegistry.clearCaches(); // Paper
+             new io.papermc.paper.event.server.ServerResourcesReloadedEvent(cause).callEvent(); // Paper
+             // Paper start
+             if (Thread.currentThread() != this.serverThread) {
