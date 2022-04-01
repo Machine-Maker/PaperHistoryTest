@@ -396,7 +396,7 @@ public final class SimplePluginManager implements PluginManager {
     public synchronized Plugin loadPlugin(@NotNull File file) throws InvalidPluginException, UnknownDependencyException {
         Preconditions.checkArgument(file != null, "File cannot be null");
 
-        checkUpdate(file);
+        file = checkUpdate(file); // Paper - update the reference in case checkUpdate renamed it
 
         Set<Pattern> filters = fileAssociations.keySet();
         Plugin result = null;
@@ -423,16 +423,61 @@ public final class SimplePluginManager implements PluginManager {
         return result;
     }
 
-    private void checkUpdate(@NotNull File file) {
+    // Paper start - Update Folder Uses Plugin Name to replace
+    /**
+     * Replaces a plugin with a plugin of the same plugin name in the update folder.
+     * @param file
+     * @throws InvalidPluginException
+     */
+    private File checkUpdate(@NotNull File file) throws InvalidPluginException {
         if (updateDirectory == null || !updateDirectory.isDirectory()) {
-            return;
+            return file;
         }
-
-        File updateFile = new File(updateDirectory, file.getName());
-        if (updateFile.isFile() && FileUtil.copy(updateFile, file)) {
-            updateFile.delete();
+        PluginLoader pluginLoader = getPluginLoader(file);
+        try {
+            String pluginName = pluginLoader.getPluginDescription(file).getName();
+            for (File updateFile : updateDirectory.listFiles()) {
+                if (!updateFile.isFile()) continue;
+                PluginLoader updatePluginLoader = getPluginLoader(updateFile);
+                if (updatePluginLoader == null) continue;
+                String updatePluginName;
+                try {
+                     updatePluginName = updatePluginLoader.getPluginDescription(updateFile).getName();
+                     // We failed to load this data for some reason, so, we'll skip over this
+                } catch (InvalidDescriptionException ex) {
+                    continue;
+                }
+                if (!pluginName.equals(updatePluginName)) continue;
+                try {
+                    java.nio.file.Files.copy(updateFile.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                } catch (java.io.IOException exception) {
+                    server.getLogger().log(Level.SEVERE, "Could not copy '" + updateFile.getPath() + "' to '" + file.getPath() + "' in update plugin process", exception);
+                    continue;
+                }
+                File newName = new File(file.getParentFile(), updateFile.getName());
+                file.renameTo(newName);
+                updateFile.delete();
+                return newName;
+            }
         }
+        catch (InvalidDescriptionException e) {
+            throw new InvalidPluginException(e);
+        }
+        return file;
     }
+
+    @Nullable
+    private PluginLoader getPluginLoader(File file) {
+        Set<Pattern> filters = fileAssociations.keySet();
+        for (Pattern filter : filters) {
+            Matcher match = filter.matcher(file.getName());
+            if (match.find()) {
+                return fileAssociations.get(filter);
+            }
+        }
+        return null;
+    }
+    // Paper end
 
     /**
      * Checks if the given plugin is loaded and returns it when applicable
