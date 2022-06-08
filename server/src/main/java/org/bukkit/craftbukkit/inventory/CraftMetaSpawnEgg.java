@@ -179,6 +179,12 @@ public class CraftMetaSpawnEgg extends CraftMetaItem implements SpawnEggMeta {
             case ZOMBIE_SPAWN_EGG:
             case ZOMBIE_VILLAGER_SPAWN_EGG:
             case ZOMBIFIED_PIGLIN_SPAWN_EGG:
+            // Paper start
+            case ALLAY_SPAWN_EGG:
+            case FROG_SPAWN_EGG:
+            case TADPOLE_SPAWN_EGG:
+            case WARDEN_SPAWN_EGG:
+            // Paper end
                 return true;
             default:
                 return false;
