@@ -43,7 +43,7 @@ public interface Cat extends Tameable, Sittable, io.papermc.paper.entity.CollarC
     /**
      * Represents the various different cat types there are.
      */
-    public enum Type {
+    public enum Type implements org.bukkit.Keyed { // Paper
         TABBY,
         BLACK,
         RED,
@@ -55,6 +55,20 @@ public interface Cat extends Tameable, Sittable, io.papermc.paper.entity.CollarC
         WHITE,
         JELLIE,
         ALL_BLACK;
+
+        // Paper start
+        private final org.bukkit.NamespacedKey key;
+
+        Type() {
+            this.key = org.bukkit.NamespacedKey.minecraft(name().toLowerCase(java.util.Locale.ROOT));
+        }
+
+        @NotNull
+        @Override
+        public org.bukkit.NamespacedKey getKey() {
+            return key;
+        }
+        // Paper end
     }
 
     // Paper Start - More cat api
