@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Owen1212055 <23108066+Owen1212055@users.noreply.github.com>
+Date: Fri, 29 Jul 2022 12:35:19 -0400
+Subject: [PATCH] Warn on plugins accessing faraway chunks
+
+
+diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
+index 9467ccaa1d73e1913495a46919aee530e749977d..5a2a1d394852d39ea576624586f7fa736dec807c 100644
+--- a/src/main/java/net/minecraft/world/level/Level.java
++++ b/src/main/java/net/minecraft/world/level/Level.java
+@@ -418,7 +418,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
+     }
+ 
+     private static boolean isInWorldBoundsHorizontal(BlockPos pos) {
+-        return pos.getX() >= -30000000 && pos.getZ() >= -30000000 && pos.getX() < 30000000 && pos.getZ() < 30000000;
++        return pos.getX() >= -30000000 && pos.getZ() >= -30000000 && pos.getX() < 30000000 && pos.getZ() < 30000000; // Dif on change
+     }
+ 
+     private static boolean isOutsideSpawnableHeight(int y) {
