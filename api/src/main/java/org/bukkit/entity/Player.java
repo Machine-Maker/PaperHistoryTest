@@ -2570,6 +2570,25 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      * @throws IllegalArgumentException If the level is negative or greater than {@code 4} (i.e. not within {@code [0, 4]}).
      */
     void sendOpLevel(byte level);
+
+    /**
+     * Adds custom chat completion suggestions that the client will
+     * suggest when typing in chat.
+     *
+     * @param completions custom completions
+     */
+    void addAdditionalChatCompletions(@NotNull java.util.Collection<String> completions);
+
+    /**
+     * Removes custom chat completion suggestions that the client
+     * suggests when typing in chat.
+     *
+     * Note: this only applies to previously added custom completions,
+     * online player names are always suggested and cannot be removed.
+     *
+     * @param completions custom completions
+     */
+    void removeAdditionalChatCompletions(@NotNull java.util.Collection<String> completions);
     // Paper end
 
     // Spigot start
