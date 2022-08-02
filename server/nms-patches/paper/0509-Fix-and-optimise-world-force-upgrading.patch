@@ -1,0 +1,142 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <Spottedleaf@users.noreply.github.com>
+Date: Thu, 20 May 2021 07:02:22 -0700
+Subject: [PATCH] Fix and optimise world force upgrading
+
+The WorldUpgrader class was incorrectly modified by
+CB. It will store an IChunkLoader instance for all
+dimension types in the world, but obviously with how
+CB shifts around worlds only one dimension type exists
+per world. But this would be OK if CB did this
+change correctly. All IChunkLoader instances
+will point to the same regionfiles. And all
+IChunkLoader instances are going to be read from.
+
+This problem hasn't really been reported because
+it relies on the persistent legacy data to be converted
+as well to cause corruption. Why? Because the legacy
+data is also shared, it will result in different
+outputs from conversion (as once conversion for legacy
+persistent data takes place, it is REMOVED - so the next
+convert will _not_ have the data). Which means different
+sizes on disk. Which means different regionfile sector
+allocations. Which means there are 3 different possible
+regionfile sector allocations in memory, and none of them
+are going to be correct.
+
+I've fixed this by writing a world upgrader suited to
+CB's changes to world folder format. It was brain dead
+easy to add threading, so I did.
+
+diff --git a/src/main/java/net/minecraft/server/Main.java b/src/main/java/net/minecraft/server/Main.java
+index ce4aed84d751a48dcd2a8409190db4a22d78f77b..0a843e0afbcb1af8e2641515eb244b791b819b8c 100644
+--- a/src/main/java/net/minecraft/server/Main.java
++++ b/src/main/java/net/minecraft/server/Main.java
+@@ -16,6 +16,7 @@ import java.util.Objects;
+ import java.util.Optional;
+ import java.util.UUID;
+ import java.util.function.BooleanSupplier;
++import io.papermc.paper.world.ThreadedWorldUpgrader;
+ import joptsimple.NonOptionArgumentSpec;
+ import joptsimple.OptionParser;
+ import joptsimple.OptionSet;
+@@ -297,6 +298,15 @@ public class Main {
+ 
+     }
+ 
++    // Paper start - fix and optimise world upgrading
++    public static void convertWorldButItWorks(net.minecraft.resources.ResourceKey<net.minecraft.world.level.dimension.LevelStem> dimensionType, net.minecraft.world.level.storage.LevelStorageSource.LevelStorageAccess worldSession,
++                                              DataFixer dataFixer, Optional<net.minecraft.resources.ResourceKey<com.mojang.serialization.Codec<? extends net.minecraft.world.level.chunk.ChunkGenerator>>> generatorKey, boolean removeCaches) {
++        int threads = Runtime.getRuntime().availableProcessors() * 3 / 8;
++        final ThreadedWorldUpgrader worldUpgrader = new ThreadedWorldUpgrader(dimensionType, worldSession.getLevelId(), worldSession.levelDirectory.path().toFile(), threads, dataFixer, generatorKey, removeCaches);
++        worldUpgrader.convert();
++    }
++    // Paper end - fix and optimise world upgrading
++
+     public static void forceUpgrade(LevelStorageSource.LevelStorageAccess session, DataFixer dataFixer, boolean eraseCache, BooleanSupplier continueCheck, WorldGenSettings generatorOptions) {
+         Main.LOGGER.info("Forcing world upgrade! {}", session.getLevelId()); // CraftBukkit
+         WorldUpgrader worldupgrader = new WorldUpgrader(session, dataFixer, generatorOptions, eraseCache);
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index a3964733e0a0459421776b6e00ca19caae5282d9..3f4a2a17790cad61218dcff351d70a2cc50cb56a 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -545,11 +545,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 worlddata = new PrimaryLevelData(worldsettings, generatorsettings, Lifecycle.stable());
+             }
+             worlddata.checkName(name); // CraftBukkit - Migration did not rewrite the level.dat; This forces 1.8 to take the last loaded world as respawn (in this case the end)
+-            if (this.options.has("forceUpgrade")) {
+-                net.minecraft.server.Main.forceUpgrade(worldSession, DataFixers.getDataFixer(), this.options.has("eraseCache"), () -> {
+-                    return true;
+-                }, worlddata.worldGenSettings());
+-            }
++            // Paper - move down
+ 
+             PrimaryLevelData iworlddataserver = worlddata;
+             WorldGenSettings generatorsettings = worlddata.worldGenSettings();
+@@ -564,6 +560,13 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 biomeProvider = gen.getDefaultBiomeProvider(worldInfo);
+             }
+ 
++            // Paper start - fix and optimise world upgrading
++            if (options.has("forceUpgrade")) {
++                net.minecraft.server.Main.convertWorldButItWorks(
++                    dimensionKey, worldSession, DataFixers.getDataFixer(), worlddimension.generator().getTypeNameForDataFixer(), options.has("eraseCache")
++                );
++            }
++            // Paper end - fix and optimise world upgrading
+             ResourceKey<Level> worldKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, dimensionKey.location());
+ 
+             if (dimensionKey == LevelStem.OVERWORLD) {
+diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
+index d9a88b29cfefcdbce7bfc477b6c1af0e51079102..c21274a72dca31c9160ecbcfa7eb42de64e91454 100644
+--- a/src/main/java/net/minecraft/world/level/Level.java
++++ b/src/main/java/net/minecraft/world/level/Level.java
+@@ -182,6 +182,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
+     public final Map<Explosion.CacheKey, Float> explosionDensityCache = new HashMap<>(); // Paper - Optimize explosions
+     public java.util.ArrayDeque<net.minecraft.world.level.block.RedstoneTorchBlock.Toggle> redstoneUpdateInfos; // Paper - Move from Map in BlockRedstoneTorch to here
+ 
++    // Paper start - fix and optimise world upgrading
++    // copied from below
++    public static ResourceKey<DimensionType> getDimensionKey(DimensionType manager) {
++        return ((org.bukkit.craftbukkit.CraftServer)org.bukkit.Bukkit.getServer()).getHandle().getServer().registryHolder.ownedRegistryOrThrow(net.minecraft.core.Registry.DIMENSION_TYPE_REGISTRY).getResourceKey(manager).orElseThrow(() -> {
++            return new IllegalStateException("Unregistered dimension type: " + manager);
++        });
++    }
++    // Paper end - fix and optimise world upgrading
++
+     public CraftWorld getWorld() {
+         return this.world;
+     }
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileStorage.java b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
+index a96a6af2bcec3134b7caa32299bd07af50e83b89..0d96d1c0b66c57c680759f3567ef1b0c326d8cfa 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileStorage.java
+@@ -32,6 +32,28 @@ public class RegionFileStorage implements AutoCloseable {
+     }
+ 
+     // Paper start
++    public static @Nullable ChunkPos getRegionFileCoordinates(Path file) {
++        String fileName = file.getFileName().toString();
++        if (!fileName.startsWith("r.") || !fileName.endsWith(".mca")) {
++            return null;
++        }
++
++        String[] split = fileName.split("\\.");
++
++        if (split.length != 4) {
++            return null;
++        }
++
++        try {
++            int x = Integer.parseInt(split[1]);
++            int z = Integer.parseInt(split[2]);
++
++            return new ChunkPos(x << 5, z << 5);
++        } catch (NumberFormatException ex) {
++            return null;
++        }
++    }
++
+     public synchronized RegionFile getRegionFileIfLoaded(ChunkPos chunkcoordintpair) {
+         return this.regionCache.getAndMoveToFirst(ChunkPos.asLong(chunkcoordintpair.getRegionX(), chunkcoordintpair.getRegionZ()));
+     }

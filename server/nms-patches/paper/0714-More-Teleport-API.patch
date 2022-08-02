@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Owen1212055 <23108066+Owen1212055@users.noreply.github.com>
+Date: Sun, 5 Sep 2021 12:15:59 -0400
+Subject: [PATCH] More Teleport API
+
+
+diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index 75505766d6a1c6693e1545df83cc09fb3b7359e3..bdccb85b1b6a773a3f33e4539d63ba6b592b6610 100644
+--- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -1732,11 +1732,17 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
+             return false; // CraftBukkit - Return event status
+         }
+ 
+-        PlayerTeleportEvent event = new PlayerTeleportEvent(player, from.clone(), to.clone(), cause);
++        // Paper start - Teleport API
++        Set<io.papermc.paper.entity.RelativeTeleportFlag> relativeFlags = java.util.EnumSet.noneOf(io.papermc.paper.entity.RelativeTeleportFlag.class);
++        for (net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket.RelativeArgument relativeArgument : set) {
++            relativeFlags.add(org.bukkit.craftbukkit.entity.CraftPlayer.toApiRelativeFlag(relativeArgument));
++        }
++        PlayerTeleportEvent event = new PlayerTeleportEvent(player, from.clone(), to.clone(), cause, flag, java.util.Set.copyOf(relativeFlags));
++        // Paper end
+         this.cserver.getPluginManager().callEvent(event);
+ 
+         if (event.isCancelled() || !to.equals(event.getTo())) {
+-            set.clear(); // Can't relative teleport
++            //set.clear(); // Can't relative teleport // Paper - Teleport API: Now you can!
+             to = event.isCancelled() ? event.getFrom() : event.getTo();
+             d0 = to.getX();
+             d1 = to.getY();

@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Minecrell <minecrell@minecrell.net>
+Date: Tue, 10 Oct 2017 18:45:20 +0200
+Subject: [PATCH] Expose client protocol version and virtual host
+
+
+diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
+index c06f1e1f08c3a854031b48ecc49e35aeb0d9b628..b132a5ca649833043b81578a2439901eaf4c4ab5 100644
+--- a/src/main/java/net/minecraft/network/Connection.java
++++ b/src/main/java/net/minecraft/network/Connection.java
+@@ -89,6 +89,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+     private float averageSentPackets;
+     private int tickCount;
+     private boolean handlingFault;
++    // Paper start - NetworkClient implementation
++    public int protocolVersion;
++    public java.net.InetSocketAddress virtualHost;
++    // Paper end
+ 
+     public Connection(PacketFlow side) {
+         this.receiving = side;
+diff --git a/src/main/java/net/minecraft/server/network/ServerHandshakePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerHandshakePacketListenerImpl.java
+index 9016aced079108aeae09f030a672467a953ef93f..4170bda451df3db43e7d57d87d1abb81934d7dad 100644
+--- a/src/main/java/net/minecraft/server/network/ServerHandshakePacketListenerImpl.java
++++ b/src/main/java/net/minecraft/server/network/ServerHandshakePacketListenerImpl.java
+@@ -154,6 +154,10 @@ public class ServerHandshakePacketListenerImpl implements ServerHandshakePacketL
+                 throw new UnsupportedOperationException("Invalid intention " + packet.getIntention());
+         }
+ 
++        // Paper start - NetworkClient implementation
++        this.connection.protocolVersion = packet.getProtocolVersion();
++        this.connection.virtualHost = com.destroystokyo.paper.network.PaperNetworkClient.prepareVirtualHost(packet.hostName, packet.port);
++        // Paper end
+     }
+ 
+     @Override

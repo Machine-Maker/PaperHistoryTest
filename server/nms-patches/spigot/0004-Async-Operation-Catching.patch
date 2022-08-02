@@ -1,0 +1,126 @@
+From cdedf2bf643bdf2fd158b41ca8c669fcb453b9a0 Mon Sep 17 00:00:00 2001
+From: md_5 <git@md-5.net>
+Date: Tue, 25 Mar 2014 16:10:01 +1100
+Subject: [PATCH] Async Operation Catching
+
+Catch and throw an exception when a potentially unsafe operation occurs on a thread other than the main server thread.
+
+diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
+index c42180eac..06b684300 100644
+--- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
+@@ -1277,6 +1277,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.e {
+     }
+ 
+     protected void addEntity(Entity entity) {
++        org.spigotmc.AsyncCatcher.catchOp("entity track"); // Spigot
+         if (!(entity instanceof EntityComplexPart)) {
+             EntityTypes<?> entitytypes = entity.getType();
+             int i = entitytypes.clientTrackingRange() * 16;
+@@ -1312,6 +1313,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.e {
+     }
+ 
+     protected void removeEntity(Entity entity) {
++        org.spigotmc.AsyncCatcher.catchOp("entity untrack"); // Spigot
+         if (entity instanceof EntityPlayer) {
+             EntityPlayer entityplayer = (EntityPlayer) entity;
+ 
+@@ -1531,6 +1533,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.e {
+         }
+ 
+         public void removePlayer(EntityPlayer entityplayer) {
++            org.spigotmc.AsyncCatcher.catchOp("player tracker clear"); // Spigot
+             if (this.seenBy.remove(entityplayer.connection)) {
+                 this.serverEntity.removePairing(entityplayer);
+             }
+@@ -1538,6 +1541,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.e {
+         }
+ 
+         public void updatePlayer(EntityPlayer entityplayer) {
++            org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot
+             if (entityplayer != this.entity) {
+                 Vec3D vec3d = entityplayer.position().subtract(this.entity.position());
+                 double d0 = (double) Math.min(this.getEffectiveRange(), (PlayerChunkMap.this.viewDistance - 1) * 16);
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index be3013fad..0f29eb29f 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -994,6 +994,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+ 
+     // CraftBukkit start
+     private boolean addEntity(Entity entity, CreatureSpawnEvent.SpawnReason spawnReason) {
++        org.spigotmc.AsyncCatcher.catchOp("entity add"); // Spigot
+         if (entity.isRemoved()) {
+             // WorldServer.LOGGER.warn("Tried to add entity {} but it was marked as removed already", EntityTypes.getKey(entity.getType())); // CraftBukkit
+             return false;
+@@ -1865,6 +1866,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+ 
+     @Override
+     public LevelEntityGetter<Entity> getEntities() {
++        org.spigotmc.AsyncCatcher.catchOp("Chunk getEntities call"); // Spigot
+         return this.entityManager.getEntityGetter();
+     }
+ 
+@@ -1938,6 +1940,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         }
+ 
+         public void onTrackingStart(Entity entity) {
++            org.spigotmc.AsyncCatcher.catchOp("entity register"); // Spigot
+             WorldServer.this.getChunkSource().addEntity(entity);
+             if (entity instanceof EntityPlayer) {
+                 EntityPlayer entityplayer = (EntityPlayer) entity;
+@@ -1975,6 +1978,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         }
+ 
+         public void onTrackingEnd(Entity entity) {
++            org.spigotmc.AsyncCatcher.catchOp("entity unregister"); // Spigot
+             WorldServer.this.getChunkSource().removeEntity(entity);
+             if (entity instanceof EntityPlayer) {
+                 EntityPlayer entityplayer = (EntityPlayer) entity;
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index aace35b3c..4532bfcdb 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -1091,6 +1091,7 @@ public abstract class EntityLiving extends Entity {
+     }
+ 
+     public boolean addEffect(MobEffect mobeffect, @Nullable Entity entity, EntityPotionEffectEvent.Cause cause) {
++        org.spigotmc.AsyncCatcher.catchOp("effect add"); // Spigot
+         if (isTickingEffects) {
+             effectsToProcess.add(new ProcessableEffect(mobeffect, cause));
+             return true;
+diff --git a/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java b/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
+index 33aa0fd67..1154da987 100644
+--- a/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
++++ b/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
+@@ -86,6 +86,7 @@ public class CraftingManager extends ResourceDataJson {
+ 
+     // CraftBukkit start
+     public void addRecipe(IRecipe<?> irecipe) {
++        org.spigotmc.AsyncCatcher.catchOp("Recipe Add"); // Spigot
+         Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> map = this.recipes.get(irecipe.getType()); // CraftBukkit
+ 
+         if (byName.containsKey(irecipe.getId()) || map.containsKey(irecipe.getId())) {
+diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+index d9c45c168..8f7ddff35 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
++++ b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+@@ -138,11 +138,14 @@ public abstract class BlockBase {
+ 
+     /** @deprecated */
+     @Deprecated
+-    public void onPlace(IBlockData iblockdata, World world, BlockPosition blockposition, IBlockData iblockdata1, boolean flag) {}
++    public void onPlace(IBlockData iblockdata, World world, BlockPosition blockposition, IBlockData iblockdata1, boolean flag) {
++        org.spigotmc.AsyncCatcher.catchOp("block onPlace"); // Spigot
++    }
+ 
+     /** @deprecated */
+     @Deprecated
+     public void onRemove(IBlockData iblockdata, World world, BlockPosition blockposition, IBlockData iblockdata1, boolean flag) {
++        org.spigotmc.AsyncCatcher.catchOp("block remove"); // Spigot
+         if (iblockdata.hasBlockEntity() && !iblockdata.is(iblockdata1.getBlock())) {
+             world.removeBlockEntity(blockposition);
+         }
+-- 
+2.37.0
+

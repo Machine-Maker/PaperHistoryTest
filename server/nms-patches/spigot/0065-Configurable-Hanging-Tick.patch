@@ -1,0 +1,22 @@
+From 620efc9242c994fb3a21b66e9d06ec636487c990 Mon Sep 17 00:00:00 2001
+From: drXor <mcyoung@mit.edu>
+Date: Sat, 9 Aug 2014 13:56:51 -0400
+Subject: [PATCH] Configurable Hanging Tick
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/decoration/EntityHanging.java b/src/main/java/net/minecraft/world/entity/decoration/EntityHanging.java
+index 7d28b5e45..1dde5897c 100644
+--- a/src/main/java/net/minecraft/world/entity/decoration/EntityHanging.java
++++ b/src/main/java/net/minecraft/world/entity/decoration/EntityHanging.java
+@@ -120,7 +120,7 @@ public abstract class EntityHanging extends Entity {
+     public void tick() {
+         if (!this.level.isClientSide) {
+             this.checkOutOfWorld();
+-            if (this.checkInterval++ == 100) {
++            if (this.checkInterval++ == this.level.spigotConfig.hangingTickFrequency) { // Spigot
+                 this.checkInterval = 0;
+                 if (!this.isRemoved() && !this.survives()) {
+                     // CraftBukkit start - fire break events
+-- 
+2.37.0
+

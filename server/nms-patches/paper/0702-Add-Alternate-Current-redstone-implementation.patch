@@ -1,0 +1,127 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Space Walker <spacedoesrs@gmail.com>
+Date: Wed, 8 Jun 2022 18:47:18 +0200
+Subject: [PATCH] Add Alternate Current redstone implementation
+
+Author: Space Walker <spacedoesrs@gmail.com>
+
+Original license: MIT
+Original project: https://github.com/SpaceWalkerRS/alternate-current
+
+This patch adds Alternate Current's redstone implementation as an alternative to vanilla and Eigencraft's.
+Performance of (de)powering redstone dust is many times faster than vanilla, and even exceeds Eigencraft.
+Similar to Eigencraft, Alternate Current heavily changes the update order of redstone dust. This means any contraption that
+is location dependent in vanilla will either work everywhere or nowhere when using Alternate Current/Eigencraft. Beyond that
+parity issues should be rare for both implementations, though Alternate Current has not been tested as thoroughly, so I
+cannot comment on how the two compare in that aspect.
+
+Alternate Current needs the following modifications:
+* Level/ServerLevel: Each level has its own 'wire handler' that handles redstone dust power changes.
+* RedStoneWireBlock: Replace calls to vanilla's or Eigencraft's methods for handling power changes with calls to
+Alternate Current's wire handler.
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerLevel.java b/src/main/java/net/minecraft/server/level/ServerLevel.java
+index 5b3a7626579ff6bcf3ad32f7193bf905aa1b70bc..c09cdc4b717bcd7b3096a068d6abc90efc486529 100644
+--- a/src/main/java/net/minecraft/server/level/ServerLevel.java
++++ b/src/main/java/net/minecraft/server/level/ServerLevel.java
+@@ -218,6 +218,7 @@ public class ServerLevel extends Level implements WorldGenLevel {
+     public final UUID uuid;
+     public boolean hasPhysicsEvent = true; // Paper
+     public boolean hasEntityMoveEvent = false; // Paper
++    private final alternate.current.wire.WireHandler wireHandler = new alternate.current.wire.WireHandler(this); // Paper - optimize redstone (Alternate Current)
+     public static Throwable getAddToWorldStackTrace(Entity entity) {
+         return new Throwable(entity + " Added to world at " + new java.util.Date());
+     }
+@@ -2479,6 +2480,13 @@ public class ServerLevel extends Level implements WorldGenLevel {
+         return this.entityManager.canPositionTick(pos.toLong()); // Paper
+     }
+ 
++    // Paper start - optimize redstone (Alternate Current)
++    @Override
++    public alternate.current.wire.WireHandler getWireHandler() {
++        return wireHandler;
++    }
++    // Paper end
++
+     private final class EntityCallbacks implements LevelCallback<Entity> {
+ 
+         EntityCallbacks() {}
+diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
+index c118efaadd0e3e29f9adcd65c11ecabfc6d76216..9467ccaa1d73e1913495a46919aee530e749977d 100644
+--- a/src/main/java/net/minecraft/world/level/Level.java
++++ b/src/main/java/net/minecraft/world/level/Level.java
+@@ -1452,4 +1452,15 @@ public abstract class Level implements LevelAccessor, AutoCloseable {
+         return ret;
+     }
+     // Paper end
++
++    // Paper start - optimize redstone (Alternate Current)
++    public alternate.current.wire.WireHandler getWireHandler() {
++        // This method is overridden in ServerLevel.
++        // Since Paper is a server platform there is no risk
++        // of this implementation being called. It is here
++        // only so this method can be called without casting
++        // an instance of Level to ServerLevel.
++        return null;
++    }
++    // Paper end
+ }
+diff --git a/src/main/java/net/minecraft/world/level/block/RedStoneWireBlock.java b/src/main/java/net/minecraft/world/level/block/RedStoneWireBlock.java
+index 3cba4921daad4b346a3f964f0fa48e1bb4d634a3..2bc21e3373f6fc6fbbaa7202ba82e7da86045b6a 100644
+--- a/src/main/java/net/minecraft/world/level/block/RedStoneWireBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/RedStoneWireBlock.java
+@@ -253,7 +253,7 @@ public class RedStoneWireBlock extends Block {
+         return floor.isFaceSturdy(world, pos, Direction.UP) || floor.is(Blocks.HOPPER);
+     }
+ 
+-    // Paper start - Optimize redstone
++    // Paper start - Optimize redstone (Eigencraft)
+     // The bulk of the new functionality is found in RedstoneWireTurbo.java
+     com.destroystokyo.paper.util.RedstoneWireTurbo turbo = new com.destroystokyo.paper.util.RedstoneWireTurbo(this);
+ 
+@@ -455,7 +455,13 @@ public class RedStoneWireBlock extends Block {
+     @Override
+     public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+         if (!oldState.is(state.getBlock()) && !world.isClientSide) {
+-            this.updateSurroundingRedstone(world, pos, state, null); // Paper - Optimize redstone
++            // Paper start - optimize redstone - replace call to updatePowerStrength
++            if (world.paperConfig().misc.redstoneImplementation == io.papermc.paper.configuration.WorldConfiguration.Misc.RedstoneImplementation.ALTERNATE_CURRENT) {
++                world.getWireHandler().onWireAdded(pos); // Alternate Current
++            } else {
++                this.updateSurroundingRedstone(world, pos, state, null); // vanilla/Eigencraft
++            }
++            // Paper end
+             Iterator iterator = Direction.Plane.VERTICAL.iterator();
+ 
+             while (iterator.hasNext()) {
+@@ -482,7 +488,13 @@ public class RedStoneWireBlock extends Block {
+                     world.updateNeighborsAt(pos.relative(enumdirection), this);
+                 }
+ 
+-                this.updateSurroundingRedstone(world, pos, state, null); // Paper - Optimize redstone
++                // Paper start - optimize redstone - replace call to updatePowerStrength
++                if (world.paperConfig().misc.redstoneImplementation == io.papermc.paper.configuration.WorldConfiguration.Misc.RedstoneImplementation.ALTERNATE_CURRENT) {
++                    world.getWireHandler().onWireRemoved(pos, state); // Alternate Current
++                } else {
++                    this.updateSurroundingRedstone(world, pos, state, null); // vanilla/Eigencraft
++                }
++                // Paper end
+                 this.updateNeighborsOfNeighboringWires(world, pos);
+             }
+         }
+@@ -516,8 +528,14 @@ public class RedStoneWireBlock extends Block {
+     @Override
+     public void neighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
+         if (!world.isClientSide) {
++            // Paper start - optimize redstone (Alternate Current)
++            // Alternate Current handles breaking of redstone wires in the WireHandler.
++            if (world.paperConfig().misc.redstoneImplementation == io.papermc.paper.configuration.WorldConfiguration.Misc.RedstoneImplementation.ALTERNATE_CURRENT) {
++                world.getWireHandler().onWireUpdated(pos);
++            } else
++            // Paper end
+             if (state.canSurvive(world, pos)) {
+-                this.updateSurroundingRedstone(world, pos, state, sourcePos); // Paper - Optimize redstone
++                this.updateSurroundingRedstone(world, pos, state, sourcePos); // Paper - Optimize redstone (Eigencraft)
+             } else {
+                 dropResources(state, world, pos);
+                 world.removeBlock(pos, false);

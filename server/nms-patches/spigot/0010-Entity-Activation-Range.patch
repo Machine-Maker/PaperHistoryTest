@@ -1,0 +1,252 @@
+From 5cff949b8c355b7cef1ea311ce7b5cff9dd6c381 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Sun, 3 Feb 2013 05:10:21 -0500
+Subject: [PATCH] Entity Activation Range
+
+This feature gives 3 new configurable ranges that if an entity of the matching type is outside of this radius of any player, will tick at 5% of its normal rate.
+
+This will drastically cut down on tick timings for entities that are not in range of a user to actually be "used".
+This change can have dramatic impact on gameplay if configured too low. Balance according to your servers desired gameplay.
+
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index 8ee75fb84..12485d1f7 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -396,6 +396,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                 gameprofilerfiller.pop();
+             }
+ 
++            org.spigotmc.ActivationRange.activateEntities(this); // Spigot
+             timings.entityTick.startTiming(); // Spigot
+             this.entityTickList.forEach((entity) -> {
+                 if (!entity.isRemoved()) {
+@@ -806,6 +807,13 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     }
+ 
+     public void tickNonPassenger(Entity entity) {
++        // Spigot start
++        if (!org.spigotmc.ActivationRange.checkIfActive(entity)) {
++            entity.tickCount++;
++            entity.inactiveTick();
++            return;
++        }
++        // Spigot end
+         entity.tickTimer.startTiming(); // Spigot
+         entity.setOldPosAndRot();
+         GameProfilerFiller gameprofilerfiller = this.getProfiler();
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 0cda7a69a..02b460070 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -302,6 +302,12 @@ public abstract class Entity implements INamableTileEntity, EntityAccess, IComma
+     public boolean persistentInvisibility = false;
+     public BlockPosition lastLavaContact;
+     public CustomTimingsHandler tickTimer = org.bukkit.craftbukkit.SpigotTimings.getEntityTimings(this); // Spigot
++    // Spigot start
++    public final org.spigotmc.ActivationRange.ActivationType activationType = org.spigotmc.ActivationRange.initializeEntityActivationType(this);
++    public final boolean defaultActivationState;
++    public long activatedTick = Integer.MIN_VALUE;
++    public void inactiveTick() { }
++    // Spigot end
+ 
+     public float getBukkitYaw() {
+         return this.yRot;
+@@ -337,6 +343,13 @@ public abstract class Entity implements INamableTileEntity, EntityAccess, IComma
+         this.position = Vec3D.ZERO;
+         this.blockPosition = BlockPosition.ZERO;
+         this.chunkPosition = ChunkCoordIntPair.ZERO;
++        // Spigot start
++        if (world != null) {
++            this.defaultActivationState = org.spigotmc.ActivationRange.initializeEntityActivationState(this, world.spigotConfig);
++        } else {
++            this.defaultActivationState = false;
++        }
++        // Spigot end
+         this.entityData = new DataWatcher(this);
+         this.entityData.define(Entity.DATA_SHARED_FLAGS_ID, (byte) 0);
+         this.entityData.define(Entity.DATA_AIR_SUPPLY_ID, this.getMaxAirSupply());
+diff --git a/src/main/java/net/minecraft/world/entity/EntityAgeable.java b/src/main/java/net/minecraft/world/entity/EntityAgeable.java
+index e7cfabf23..754e82733 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityAgeable.java
++++ b/src/main/java/net/minecraft/world/entity/EntityAgeable.java
+@@ -25,6 +25,31 @@ public abstract class EntityAgeable extends EntityCreature {
+         super(entitytypes, world);
+     }
+ 
++    // Spigot start
++    @Override
++    public void inactiveTick()
++    {
++        super.inactiveTick();
++        if ( this.level.isClientSide || this.ageLocked )
++        { // CraftBukkit
++            this.refreshDimensions();
++        } else
++        {
++            int i = this.getAge();
++
++            if ( i < 0 )
++            {
++                ++i;
++                this.setAge( i );
++            } else if ( i > 0 )
++            {
++                --i;
++                this.setAge( i );
++            }
++        }
++    }
++    // Spigot end
++
+     @Override
+     public GroupDataEntity finalizeSpawn(WorldAccess worldaccess, DifficultyDamageScaler difficultydamagescaler, EnumMobSpawn enummobspawn, @Nullable GroupDataEntity groupdataentity, @Nullable NBTTagCompound nbttagcompound) {
+         if (groupdataentity == null) {
+diff --git a/src/main/java/net/minecraft/world/entity/EntityAreaEffectCloud.java b/src/main/java/net/minecraft/world/entity/EntityAreaEffectCloud.java
+index 3a25f8858..0d5b9fc03 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityAreaEffectCloud.java
++++ b/src/main/java/net/minecraft/world/entity/EntityAreaEffectCloud.java
+@@ -182,6 +182,18 @@ public class EntityAreaEffectCloud extends Entity {
+         this.duration = i;
+     }
+ 
++    // Spigot start - copied from below
++    @Override
++    public void inactiveTick() {
++        super.inactiveTick();
++
++        if (this.tickCount >= this.waitTime + this.duration) {
++            this.discard();
++            return;
++        }
++    }
++    // Spigot end
++
+     @Override
+     public void tick() {
+         super.tick();
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index 31fb69264..fd5a7fdcf 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -268,6 +268,13 @@ public abstract class EntityLiving extends Entity {
+         return getYHeadRot();
+     }
+     // CraftBukkit end
++    // Spigot start
++    public void inactiveTick()
++    {
++        super.inactiveTick();
++        ++this.noActionTime; // Above all the floats
++    }
++    // Spigot end
+ 
+     protected EntityLiving(EntityTypes<? extends EntityLiving> entitytypes, World world) {
+         super(entitytypes, world);
+diff --git a/src/main/java/net/minecraft/world/entity/item/EntityItem.java b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
+index a5b0878c5..3080d1590 100644
+--- a/src/main/java/net/minecraft/world/entity/item/EntityItem.java
++++ b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
+@@ -193,6 +193,28 @@ public class EntityItem extends Entity {
+         }
+     }
+ 
++    // Spigot start - copied from above
++    @Override
++    public void inactiveTick() {
++        // CraftBukkit start - Use wall time for pickup and despawn timers
++        int elapsedTicks = MinecraftServer.currentTick - this.lastTick;
++        if (this.pickupDelay != 32767) this.pickupDelay -= elapsedTicks;
++        if (this.age != -32768) this.age += elapsedTicks;
++        this.lastTick = MinecraftServer.currentTick;
++        // CraftBukkit end
++
++        if (!this.level.isClientSide && this.age >= level.spigotConfig.itemDespawnRate) { // Spigot
++            // CraftBukkit start - fire ItemDespawnEvent
++            if (org.bukkit.craftbukkit.event.CraftEventFactory.callItemDespawnEvent(this).isCancelled()) {
++                this.age = 0;
++                return;
++            }
++            // CraftBukkit end
++            this.discard();
++        }
++    }
++    // Spigot end
++
+     private void setUnderwaterMovement() {
+         Vec3D vec3d = this.getDeltaMovement();
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
+index 9d18b82a8..79c058e50 100644
+--- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
++++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
+@@ -222,6 +222,17 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+         return this.assignProfessionWhenSpawned;
+     }
+ 
++    // Spigot Start
++    @Override
++    public void inactiveTick() {
++        // SPIGOT-3874, SPIGOT-3894, SPIGOT-3846, SPIGOT-5286 :(
++        if (level.spigotConfig.tickInactiveVillagers && this.isEffectiveAi()) {
++            this.customServerAiStep();
++        }
++        super.inactiveTick();
++    }
++    // Spigot End
++
+     @Override
+     protected void customServerAiStep() {
+         this.level.getProfiler().push("villagerBrain");
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/EntityArrow.java b/src/main/java/net/minecraft/world/entity/projectile/EntityArrow.java
+index 5e4530883..95cdde462 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/EntityArrow.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/EntityArrow.java
+@@ -74,6 +74,18 @@ public abstract class EntityArrow extends IProjectile {
+     @Nullable
+     private List<Entity> piercedAndKilledEntities;
+ 
++    // Spigot Start
++    @Override
++    public void inactiveTick()
++    {
++        if ( this.inGround )
++        {
++            this.life += 1;
++        }
++        super.inactiveTick();
++    }
++    // Spigot End
++
+     protected EntityArrow(EntityTypes<? extends EntityArrow> entitytypes, World world) {
+         super(entitytypes, world);
+         this.pickup = EntityArrow.PickupStatus.DISALLOWED;
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/EntityFireworks.java b/src/main/java/net/minecraft/world/entity/projectile/EntityFireworks.java
+index 1e8c5a659..5ff797d37 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/EntityFireworks.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/EntityFireworks.java
+@@ -81,6 +81,22 @@ public class EntityFireworks extends IProjectile implements ItemSupplier {
+         this.setOwner(entity);
+     }
+ 
++    // Spigot Start - copied from tick
++    @Override
++    public void inactiveTick() {
++        this.life += 1;
++
++        if (!this.level.isClientSide && this.life > this.lifetime) {
++            // CraftBukkit start
++            if (!org.bukkit.craftbukkit.event.CraftEventFactory.callFireworkExplodeEvent(this).isCancelled()) {
++                this.explode();
++            }
++            // CraftBukkit end
++        }
++        super.inactiveTick();
++    }
++    // Spigot End
++
+     @Override
+     protected void defineSynchedData() {
+         this.entityData.define(EntityFireworks.DATA_ID_FIREWORKS_ITEM, ItemStack.EMPTY);
+-- 
+2.37.0
+

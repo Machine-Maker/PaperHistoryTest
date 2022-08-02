@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: BillyGalbreath <Blake.Galbreath@GMail.com>
+Date: Mon, 3 Sep 2018 18:20:03 -0500
+Subject: [PATCH] Add ray tracing methods to LivingEntity
+
+
+diff --git a/src/main/java/net/minecraft/server/MCUtil.java b/src/main/java/net/minecraft/server/MCUtil.java
+index 0cf818fceddd76e7704fdc6625456787856b2815..ccdee183f02ab55723e16f41efce55dc51e96297 100644
+--- a/src/main/java/net/minecraft/server/MCUtil.java
++++ b/src/main/java/net/minecraft/server/MCUtil.java
+@@ -493,6 +493,18 @@ public final class MCUtil {
+         return getNMSWorld(entity.getWorld());
+     }
+ 
++    public static ClipContext.Fluid getNMSFluidCollisionOption(com.destroystokyo.paper.block.TargetBlockInfo.FluidMode fluidMode) {
++        switch (fluidMode) {
++            case NEVER:
++                return ClipContext.Fluid.NONE;
++            case SOURCE_ONLY:
++                return ClipContext.Fluid.SOURCE_ONLY;
++            case ALWAYS:
++                return ClipContext.Fluid.ANY;
++        }
++        return null;
++    }
++
+     public static BlockFace toBukkitBlockFace(Direction enumDirection) {
+         switch (enumDirection) {
+             case DOWN:
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index f7a535c35dde266e82369a8cee67c6e58c178731..75f1d666d7e15cfad3935ba3aff6b68b6b6f992a 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -3721,6 +3721,23 @@ public abstract class LivingEntity extends Entity {
+     }
+ 
+     // Paper start
++    public HitResult getRayTrace(int maxDistance) {
++        return getRayTrace(maxDistance, ClipContext.Fluid.NONE);
++    }
++
++    public HitResult getRayTrace(int maxDistance, ClipContext.Fluid fluidCollisionOption) {
++        if (maxDistance < 1 || maxDistance > 120) {
++            throw new IllegalArgumentException("maxDistance must be between 1-120");
++        }
++
++        Vec3 start = new Vec3(getX(), getY() + getEyeHeight(), getZ());
++        org.bukkit.util.Vector dir = getBukkitEntity().getLocation().getDirection().multiply(maxDistance);
++        Vec3 end = new Vec3(start.x + dir.getX(), start.y + dir.getY(), start.z + dir.getZ());
++        ClipContext raytrace = new ClipContext(start, end, ClipContext.Block.OUTLINE, fluidCollisionOption, this);
++
++        return level.clip(raytrace);
++    }
++
+     public int shieldBlockingDelay = level.paperConfig().misc.shieldBlockingDelay;
+ 
+     public int getShieldBlockingDelay() {

@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jason Penilla <11360596+jpenilla@users.noreply.github.com>
+Date: Mon, 16 Aug 2021 01:31:54 -0500
+Subject: [PATCH] Add '/paper mobcaps' and '/paper playermobcaps'
+
+Add commands to get the mobcaps for a world, as well as the mobcaps for
+each player when per-player mob spawning is enabled.
+
+Also has a hover text on each mob category listing what entity types are
+in said category
+
+diff --git a/src/main/java/net/minecraft/world/level/NaturalSpawner.java b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
+index fa23e9c476d4edc6176d8b8a6cb13c52d2f66a87..4150e8cd7197eac53042d56f0a53a4951f8824ce 100644
+--- a/src/main/java/net/minecraft/world/level/NaturalSpawner.java
++++ b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
+@@ -191,6 +191,16 @@ public final class NaturalSpawner {
+         world.getProfiler().pop();
+     }
+ 
++    // Paper start
++    public static int globalLimitForCategory(final ServerLevel level, final MobCategory category, final int spawnableChunkCount) {
++        final int categoryLimit = level.getWorld().getSpawnLimitUnsafe(CraftSpawnCategory.toBukkit(category));
++        if (categoryLimit < 1) {
++            return categoryLimit;
++        }
++        return categoryLimit * spawnableChunkCount / NaturalSpawner.MAGIC_NUMBER;
++    }
++    // Paper end
++
+     public static void spawnCategoryForChunk(MobCategory group, ServerLevel world, LevelChunk chunk, NaturalSpawner.SpawnPredicate checker, NaturalSpawner.AfterSpawnCallback runner) {
+         // Paper start - add parameters and int ret type
+         spawnCategoryForChunk(group, world, chunk, checker, runner, Integer.MAX_VALUE, null);

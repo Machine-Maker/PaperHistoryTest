@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jason Penilla <11360596+jpenilla@users.noreply.github.com>
+Date: Wed, 25 Aug 2021 13:19:53 -0700
+Subject: [PATCH] Vanilla command permission fixes
+
+Fixes permission checks for vanilla commands which don't have a
+requirement, as well as for namespaced vanilla commands.
+
+diff --git a/src/main/java/net/minecraft/commands/Commands.java b/src/main/java/net/minecraft/commands/Commands.java
+index edf980cf8992ddfe003ced279fe1324fc2364e5a..e70e5af7e49e4ccf332d9ce44e1a106344b35490 100644
+--- a/src/main/java/net/minecraft/commands/Commands.java
++++ b/src/main/java/net/minecraft/commands/Commands.java
+@@ -213,7 +213,13 @@ public class Commands {
+         if (environment.includeIntegrated) {
+             PublishCommand.register(this.dispatcher);
+         }
+-
++        // Paper start
++        for (final CommandNode<CommandSourceStack> node : this.dispatcher.getRoot().getChildren()) {
++            if (node.getRequirement() == com.mojang.brigadier.builder.ArgumentBuilder.<CommandSourceStack>defaultRequirement()) {
++                node.requirement = stack -> stack.source == CommandSource.NULL || stack.getBukkitSender().hasPermission(org.bukkit.craftbukkit.command.VanillaCommandWrapper.getPermission(node));
++            }
++        }
++        // Paper end
+         // CraftBukkit start
+     }
+ 

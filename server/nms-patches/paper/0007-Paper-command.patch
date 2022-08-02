@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Zach Brown <zach.brown@destroystokyo.com>
+Date: Mon, 29 Feb 2016 21:02:09 -0600
+Subject: [PATCH] Paper command
+
+
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index 08ae7a96e93c0d8547f560b3f753804525621c6b..8f29bb843fc456384f7b4e216afca5018fb7f794 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -191,6 +191,7 @@ public class DedicatedServer extends MinecraftServer implements ServerInterface
+         // Paper start
+         paperConfigurations.initializeGlobalConfiguration();
+         paperConfigurations.initializeWorldDefaultsConfiguration();
++        io.papermc.paper.command.PaperCommands.registerCommands(this);
+         // Paper end
+ 
+         this.setPvpAllowed(dedicatedserverproperties.pvp);

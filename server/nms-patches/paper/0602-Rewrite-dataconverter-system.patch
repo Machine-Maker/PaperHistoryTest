@@ -1,0 +1,98 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <Spottedleaf@users.noreply.github.com>
+Date: Sat, 19 Jun 2021 10:43:01 -0700
+Subject: [PATCH] Rewrite dataconverter system
+
+Please see https://github.com/PaperMC/DataConverter
+for details.
+
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java
+index fee9a8e74bfcc94942991b56799debf67b551f43..b230a3d475357d2ffd340f9a89934ea7227e69d0 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkStorage.java
+@@ -87,7 +87,7 @@ public class ChunkStorage implements AutoCloseable {
+         int i = ChunkStorage.getVersion(nbttagcompound);
+ 
+         // CraftBukkit start
+-        if (i < 1466) {
++        if (false && i < 1466) { // Paper - no longer needed, data converter system handles it now
+             CompoundTag level = nbttagcompound.getCompound("Level");
+             if (level.getBoolean("TerrainPopulated") && !level.getBoolean("LightPopulated")) {
+                 ServerChunkCache cps = (generatoraccess == null) ? null : ((ServerLevel) generatoraccess).getChunkSource();
+@@ -99,7 +99,7 @@ public class ChunkStorage implements AutoCloseable {
+         // CraftBukkit end
+ 
+         if (i < 1493) {
+-            nbttagcompound = NbtUtils.update(this.fixerUpper, DataFixTypes.CHUNK, nbttagcompound, i, 1493);
++            ca.spottedleaf.dataconverter.minecraft.MCDataConverter.convertTag(ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.CHUNK, nbttagcompound, i, 1493); // Paper - replace chunk converter
+             if (nbttagcompound.getCompound("Level").getBoolean("hasLegacyStructureData")) {
+                 synchronized (this.persistentDataLock) { // Paper - Async chunk loading
+                 LegacyStructureDataHandler persistentstructurelegacy = this.getLegacyStructureHandler(resourcekey, supplier);
+@@ -119,7 +119,7 @@ public class ChunkStorage implements AutoCloseable {
+         // Spigot end
+ 
+         ChunkStorage.injectDatafixingContext(nbttagcompound, resourcekey, optional);
+-        nbttagcompound = NbtUtils.update(this.fixerUpper, DataFixTypes.CHUNK, nbttagcompound, Math.max(1493, i));
++        nbttagcompound = ca.spottedleaf.dataconverter.minecraft.MCDataConverter.convertTag(ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.CHUNK, nbttagcompound, Math.max(1493, i), SharedConstants.getCurrentVersion().getWorldVersion()); // Paper - replace chunk converter
+         if (i < SharedConstants.getCurrentVersion().getWorldVersion()) {
+             nbttagcompound.putInt("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
+         }
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/EntityStorage.java b/src/main/java/net/minecraft/world/level/chunk/storage/EntityStorage.java
+index de7afc737b1ab099edc29a4ef94baa76329c2947..2bc0384728f89b7c64a8beec78a1b77dc063d37b 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/EntityStorage.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/EntityStorage.java
+@@ -128,7 +128,7 @@ public class EntityStorage implements EntityPersistentStorage<Entity> {
+ 
+     private CompoundTag upgradeChunkTag(CompoundTag chunkNbt) {
+         int i = getVersion(chunkNbt);
+-        return NbtUtils.update(this.fixerUpper, DataFixTypes.ENTITY_CHUNK, chunkNbt, i);
++        return ca.spottedleaf.dataconverter.minecraft.MCDataConverter.convertTag(ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.ENTITY_CHUNK, chunkNbt, i, SharedConstants.getCurrentVersion().getWorldVersion()); // Paper - route to new converter system
+     }
+ 
+     public static int getVersion(CompoundTag chunkNbt) {
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java b/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java
+index 9b2cec7528936a5d53a926c91063cb6e9ed7da1b..47cda78efcce597d3d7ba8fc93a2865e10cdc237 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/SectionStorage.java
+@@ -148,7 +148,14 @@ public class SectionStorage<R> extends RegionFileStorage implements AutoCloseabl
+             int j = getVersion(dynamic);
+             int k = SharedConstants.getCurrentVersion().getWorldVersion();
+             boolean bl = j != k;
+-            Dynamic<T> dynamic2 = this.fixerUpper.update(this.type.getType(), dynamic, j, k);
++            // Paper start - route to new converter system
++            Dynamic<T> dynamic2;
++            if (this.type.getType() == net.minecraft.util.datafix.fixes.References.POI_CHUNK) {
++                dynamic2 = new Dynamic<>(dynamic.getOps(), (T)ca.spottedleaf.dataconverter.minecraft.MCDataConverter.convertTag(ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.POI_CHUNK, (CompoundTag)dynamic.getValue(), j, k));
++            } else {
++                dynamic2 = this.fixerUpper.update(this.type.getType(), dynamic, j, k);
++            }
++            // Paper end - route to new converter system
+             OptionalDynamic<T> optionalDynamic = dynamic2.get("Sections");
+ 
+             for(int l = this.levelHeightAccessor.getMinSection(); l < this.levelHeightAccessor.getMaxSection(); ++l) {
+diff --git a/src/main/java/net/minecraft/world/level/levelgen/structure/StructureCheck.java b/src/main/java/net/minecraft/world/level/levelgen/structure/StructureCheck.java
+index 963ad3ce1ef83888ae1537ff01accdbb5b04ffa1..a7cba5b828a586d7435bda4d512af68684244682 100644
+--- a/src/main/java/net/minecraft/world/level/levelgen/structure/StructureCheck.java
++++ b/src/main/java/net/minecraft/world/level/levelgen/structure/StructureCheck.java
+@@ -115,7 +115,7 @@ public class StructureCheck {
+ 
+                 CompoundTag compoundTag2;
+                 try {
+-                    compoundTag2 = NbtUtils.update(this.fixerUpper, DataFixTypes.CHUNK, compoundTag, i);
++                    compoundTag2 = ca.spottedleaf.dataconverter.minecraft.MCDataConverter.convertTag(ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.CHUNK, compoundTag, i, net.minecraft.SharedConstants.getCurrentVersion().getWorldVersion()); // Paper - replace chunk converter
+                 } catch (Exception var12) {
+                     LOGGER.warn("Failed to partially datafix chunk {}", pos, var12);
+                     return StructureCheckResult.CHUNK_LOAD_NEEDED;
+diff --git a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
+index d785efd61caa2237e05d9ce3dbf84d86076ff047..601f8099f74e81c17600566b3c9b7a6dd39c9bcb 100644
+--- a/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
++++ b/src/main/java/net/minecraft/world/level/storage/PlayerDataStorage.java
+@@ -93,7 +93,7 @@ public class PlayerDataStorage {
+             // CraftBukkit end
+             int i = nbttagcompound.contains("DataVersion", 3) ? nbttagcompound.getInt("DataVersion") : -1;
+ 
+-            player.load(NbtUtils.update(this.fixerUpper, DataFixTypes.PLAYER, nbttagcompound, i));
++            player.load(ca.spottedleaf.dataconverter.minecraft.MCDataConverter.convertTag(ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry.PLAYER, nbttagcompound, i, net.minecraft.SharedConstants.getCurrentVersion().getWorldVersion())); // Paper - replace player converter
+         }
+ 
+         return nbttagcompound;

@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ysl3000 <yannicklamprecht@live.de>
+Date: Sat, 24 Oct 2020 16:37:44 +0200
+Subject: [PATCH] living entity allow attribute registration
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java b/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+index 4d2c02a1e1b4a8fad12894a7439ec7e53a67d97a..c770ee21b7b699522941f6a1584d532001c04082 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
++++ b/src/main/java/net/minecraft/world/entity/ai/attributes/AttributeMap.java
+@@ -132,4 +132,12 @@ public class AttributeMap {
+         }
+ 
+     }
++
++    // Paper - start
++    public void registerAttribute(Attribute attributeBase) {
++        AttributeInstance attributeModifiable = new AttributeInstance(attributeBase, AttributeInstance::getAttribute);
++        attributes.put(attributeBase, attributeModifiable);
++    }
++    // Paper - end
++
+ }

@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jake Potrebic <jake.m.potrebic@gmail.com>
+Date: Sun, 26 Sep 2021 12:57:28 -0700
+Subject: [PATCH] Option to prevent NBT copy in smithing recipes
+
+
+diff --git a/src/main/java/net/minecraft/world/item/crafting/UpgradeRecipe.java b/src/main/java/net/minecraft/world/item/crafting/UpgradeRecipe.java
+index d80fc47820edbb3bea439aedf2e02e82c1931e35..076e10e5d7908c590402cfbb739bf73bc00276ce 100644
+--- a/src/main/java/net/minecraft/world/item/crafting/UpgradeRecipe.java
++++ b/src/main/java/net/minecraft/world/item/crafting/UpgradeRecipe.java
+@@ -25,8 +25,15 @@ public class UpgradeRecipe implements net.minecraft.world.item.crafting.Recipe<C
+     final Ingredient addition;
+     final ItemStack result;
+     private final ResourceLocation id;
++    final boolean copyNbt; // Paper
+ 
+     public UpgradeRecipe(ResourceLocation id, Ingredient base, Ingredient addition, ItemStack result) {
++        // Paper start
++        this(id, base, addition, result, true);
++    }
++    public UpgradeRecipe(ResourceLocation id, Ingredient base, Ingredient addition, ItemStack result, boolean copyNbt) {
++        this.copyNbt = copyNbt;
++        // Paper end
+         this.id = id;
+         this.base = base;
+         this.addition = addition;
+@@ -41,11 +48,13 @@ public class UpgradeRecipe implements net.minecraft.world.item.crafting.Recipe<C
+     @Override
+     public ItemStack assemble(Container inventory) {
+         ItemStack itemstack = this.result.copy();
++        if (copyNbt) { // Paper - copy nbt conditionally
+         CompoundTag nbttagcompound = inventory.getItem(0).getTag();
+ 
+         if (nbttagcompound != null) {
+             itemstack.setTag(nbttagcompound.copy());
+         }
++        } // Paper
+ 
+         return itemstack;
+     }
+@@ -96,7 +105,7 @@ public class UpgradeRecipe implements net.minecraft.world.item.crafting.Recipe<C
+     public Recipe toBukkitRecipe() {
+         CraftItemStack result = CraftItemStack.asCraftMirror(this.result);
+ 
+-        CraftSmithingRecipe recipe = new CraftSmithingRecipe(CraftNamespacedKey.fromMinecraft(this.id), result, CraftRecipe.toBukkit(this.base), CraftRecipe.toBukkit(this.addition));
++        CraftSmithingRecipe recipe = new CraftSmithingRecipe(CraftNamespacedKey.fromMinecraft(this.id), result, CraftRecipe.toBukkit(this.base), CraftRecipe.toBukkit(this.addition), this.copyNbt); // Paper
+ 
+         return recipe;
+     }

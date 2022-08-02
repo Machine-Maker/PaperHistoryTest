@@ -1,0 +1,177 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <Spottedleaf@users.noreply.github.com>
+Date: Thu, 11 Mar 2021 20:05:44 -0800
+Subject: [PATCH] Custom table implementation for blockstate state lookups
+
+Testing some redstone intensive machines showed to bring about a 10%
+improvement.
+
+diff --git a/src/main/java/net/minecraft/world/level/block/state/StateHolder.java b/src/main/java/net/minecraft/world/level/block/state/StateHolder.java
+index ab712fd29b316e1235645bacaa79aa0a64d0bc00..340d0648fcf9b9749c4daa1c25a226b947707c3d 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/StateHolder.java
++++ b/src/main/java/net/minecraft/world/level/block/state/StateHolder.java
+@@ -39,11 +39,13 @@ public abstract class StateHolder<O, S> {
+     private final ImmutableMap<Property<?>, Comparable<?>> values;
+     private Table<Property<?>, Comparable<?>, S> neighbours;
+     protected final MapCodec<S> propertiesCodec;
++    protected final io.papermc.paper.util.table.ZeroCollidingReferenceStateTable optimisedTable; // Paper - optimise state lookup
+ 
+     protected StateHolder(O owner, ImmutableMap<Property<?>, Comparable<?>> entries, MapCodec<S> codec) {
+         this.owner = owner;
+         this.values = entries;
+         this.propertiesCodec = codec;
++        this.optimisedTable = new io.papermc.paper.util.table.ZeroCollidingReferenceStateTable(this, entries); // Paper - optimise state lookup
+     }
+ 
+     public <T extends Comparable<T>> S cycle(Property<T> property) {
+@@ -84,11 +86,11 @@ public abstract class StateHolder<O, S> {
+     }
+ 
+     public <T extends Comparable<T>> boolean hasProperty(Property<T> property) {
+-        return this.values.containsKey(property);
++        return this.optimisedTable.get(property) != null; // Paper - optimise state lookup
+     }
+ 
+     public <T extends Comparable<T>> T getValue(Property<T> property) {
+-        Comparable<?> comparable = this.values.get(property);
++        Comparable<?> comparable = this.optimisedTable.get(property); // Paper - optimise state lookup
+         if (comparable == null) {
+             throw new IllegalArgumentException("Cannot get property " + property + " as it does not exist in " + this.owner);
+         } else {
+@@ -97,24 +99,18 @@ public abstract class StateHolder<O, S> {
+     }
+ 
+     public <T extends Comparable<T>> Optional<T> getOptionalValue(Property<T> property) {
+-        Comparable<?> comparable = this.values.get(property);
++        Comparable<?> comparable = this.optimisedTable.get(property); // Paper - optimise state lookup
+         return comparable == null ? Optional.empty() : Optional.of(property.getValueClass().cast(comparable));
+     }
+ 
+     public <T extends Comparable<T>, V extends T> S setValue(Property<T> property, V value) {
+-        Comparable<?> comparable = this.values.get(property);
+-        if (comparable == null) {
+-            throw new IllegalArgumentException("Cannot set property " + property + " as it does not exist in " + this.owner);
+-        } else if (comparable == value) {
+-            return (S)this;
+-        } else {
+-            S object = this.neighbours.get(property, value);
+-            if (object == null) {
+-                throw new IllegalArgumentException("Cannot set property " + property + " to " + value + " on " + this.owner + ", it is not an allowed value");
+-            } else {
+-                return object;
+-            }
++        // Paper start - optimise state lookup
++        final S ret = (S)this.optimisedTable.get(property, value);
++        if (ret == null) {
++            throw new IllegalArgumentException("Cannot set property " + property + " to " + value + " on " + this.owner + ", it is not an allowed value");
+         }
++        return ret;
++        // Paper end - optimise state lookup
+     }
+ 
+     public void populateNeighbours(Map<Map<Property<?>, Comparable<?>>, S> states) {
+@@ -133,7 +129,7 @@ public abstract class StateHolder<O, S> {
+                 }
+             }
+ 
+-            this.neighbours = (Table<Property<?>, Comparable<?>, S>)(table.isEmpty() ? table : ArrayTable.create(table));
++            this.neighbours = (Table<Property<?>, Comparable<?>, S>)(table.isEmpty() ? table : ArrayTable.create(table)); this.optimisedTable.loadInTable((Table)this.neighbours, this.values); // Paper - optimise state lookup
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/level/block/state/properties/BooleanProperty.java b/src/main/java/net/minecraft/world/level/block/state/properties/BooleanProperty.java
+index ff1a0d125edd2ea10c870cbb62ae9aa23644b6dc..233215280f8494dbc33a2fd0b14e37e59f1cb643 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/properties/BooleanProperty.java
++++ b/src/main/java/net/minecraft/world/level/block/state/properties/BooleanProperty.java
+@@ -7,6 +7,13 @@ import java.util.Optional;
+ public class BooleanProperty extends Property<Boolean> {
+     private final ImmutableSet<Boolean> values = ImmutableSet.of(true, false);
+ 
++    // Paper start - optimise iblockdata state lookup
++    @Override
++    public final int getIdFor(final Boolean value) {
++        return value.booleanValue() ? 1 : 0;
++    }
++    // Paper end - optimise iblockdata state lookup
++
+     protected BooleanProperty(String name) {
+         super(name, Boolean.class);
+     }
+diff --git a/src/main/java/net/minecraft/world/level/block/state/properties/EnumProperty.java b/src/main/java/net/minecraft/world/level/block/state/properties/EnumProperty.java
+index 0bca0f971dac994bd8b6ecd87e8b33e26c0f18f9..edd3c745efb40ee79a1393199c7a27ddaa2f8026 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/properties/EnumProperty.java
++++ b/src/main/java/net/minecraft/world/level/block/state/properties/EnumProperty.java
+@@ -15,6 +15,15 @@ public class EnumProperty<T extends Enum<T> & StringRepresentable> extends Prope
+     private final ImmutableSet<T> values;
+     private final Map<String, T> names = Maps.newHashMap();
+ 
++    // Paper start - optimise iblockdata state lookup
++    private int[] idLookupTable;
++
++    @Override
++    public final int getIdFor(final T value) {
++        return this.idLookupTable[value.ordinal()];
++    }
++    // Paper end - optimise iblockdata state lookup
++
+     protected EnumProperty(String name, Class<T> type, Collection<T> values) {
+         super(name, type);
+         this.values = ImmutableSet.copyOf(values);
+@@ -28,6 +37,14 @@ public class EnumProperty<T extends Enum<T> & StringRepresentable> extends Prope
+             this.names.put(string, enum_);
+         }
+ 
++        // Paper start - optimise iblockdata state lookup
++        int id = 0;
++        this.idLookupTable = new int[type.getEnumConstants().length];
++        java.util.Arrays.fill(this.idLookupTable, -1);
++        for (final T value : this.getPossibleValues()) {
++            this.idLookupTable[value.ordinal()] = id++;
++        }
++        // Paper end - optimise iblockdata state lookup
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/world/level/block/state/properties/IntegerProperty.java b/src/main/java/net/minecraft/world/level/block/state/properties/IntegerProperty.java
+index bdbe0362e49e73c05237f9f3143230e0b03e494e..8eb20ea852a8e89c431fea55a7b60833a6c8104f 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/properties/IntegerProperty.java
++++ b/src/main/java/net/minecraft/world/level/block/state/properties/IntegerProperty.java
+@@ -11,6 +11,16 @@ public class IntegerProperty extends Property<Integer> {
+     public final int min;
+     public final int max;
+ 
++    // Paper start - optimise iblockdata state lookup
++    @Override
++    public final int getIdFor(final Integer value) {
++        final int val = value.intValue();
++        final int ret = val - this.min;
++
++        return ret | ((this.max - ret) >> 31);
++    }
++    // Paper end - optimise iblockdata state lookup
++
+     protected IntegerProperty(String name, int min, int max) {
+         super(name, Integer.class);
+         if (min < 0) {
+diff --git a/src/main/java/net/minecraft/world/level/block/state/properties/Property.java b/src/main/java/net/minecraft/world/level/block/state/properties/Property.java
+index a37424bbc6bee02354abaa793aa0865c556c6bbe..f923593bd336dd1a950ba61603d53edb3c9703eb 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/properties/Property.java
++++ b/src/main/java/net/minecraft/world/level/block/state/properties/Property.java
+@@ -22,6 +22,17 @@ public abstract class Property<T extends Comparable<T>> {
+     }, this::getName);
+     private final Codec<Property.Value<T>> valueCodec = this.codec.xmap(this::value, Property.Value::value);
+ 
++    // Paper start - optimise iblockdata state lookup
++    private static final java.util.concurrent.atomic.AtomicInteger ID_GENERATOR = new java.util.concurrent.atomic.AtomicInteger();
++    private final int id = ID_GENERATOR.getAndIncrement();
++
++    public final int getId() {
++        return this.id;
++    }
++
++    public abstract int getIdFor(final T value);
++    // Paper end - optimise state lookup
++
+     protected Property(String name, Class<T> type) {
+         this.clazz = type;
+         this.name = name;

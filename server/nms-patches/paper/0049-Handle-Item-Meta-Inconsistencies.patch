@@ -1,0 +1,71 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Thu, 28 May 2015 23:00:19 -0400
+Subject: [PATCH] Handle Item Meta Inconsistencies
+
+First, Enchantment order would blow away seeing 2 items as the same,
+however the Client forces enchantment list in a certain order, as well
+as does the /enchant command. Anvils can insert it into forced order,
+causing 2 same items to be considered different.
+
+This change makes unhandled NBT Tags and Enchantments use a sorted tree map,
+so they will always be in a consistent order.
+
+Additionally, the old enchantment API was never updated when ItemMeta
+was added, resulting in 2 different ways to modify an items enchantments.
+
+For consistency, the old API methods now forward to use the
+ItemMeta API equivalents, and should deprecate the old API's.
+
+diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
+index e937186aaf819a77c80beeb9e08413a1f781c13a..0e19f49ca2496b1c42d27289bcea15d26993ca85 100644
+--- a/src/main/java/net/minecraft/world/item/ItemStack.java
++++ b/src/main/java/net/minecraft/world/item/ItemStack.java
+@@ -151,6 +151,23 @@ public final class ItemStack {
+         return this.getItem().getTooltipImage(this);
+     }
+ 
++    // Paper start
++    private static final java.util.Comparator<? super CompoundTag> enchantSorter = java.util.Comparator.comparing(o -> o.getString("id"));
++    private void processEnchantOrder(@Nullable CompoundTag tag) {
++        if (tag == null || !tag.contains("Enchantments", 9)) {
++            return;
++        }
++        ListTag list = tag.getList("Enchantments", 10);
++        if (list.size() < 2) {
++            return;
++        }
++        try {
++            //noinspection unchecked
++            list.sort((java.util.Comparator<? super net.minecraft.nbt.Tag>) enchantSorter); // Paper
++        } catch (Exception ignored) {}
++    }
++    // Paper end
++
+     public ItemStack(ItemLike item) {
+         this(item, 1);
+     }
+@@ -202,6 +219,7 @@ public final class ItemStack {
+             // CraftBukkit start - make defensive copy as this data may be coming from the save thread
+             this.tag = nbttagcompound.getCompound("tag").copy();
+             // CraftBukkit end
++            this.processEnchantOrder(this.tag); // Paper
+             this.getItem().verifyTagAfterLoad(this.tag);
+         }
+ 
+@@ -772,6 +790,7 @@ public final class ItemStack {
+ 
+     public void setTag(@Nullable CompoundTag nbt) {
+         this.tag = nbt;
++        this.processEnchantOrder(this.tag); // Paper
+         if (this.getItem().canBeDepleted()) {
+             this.setDamageValue(this.getDamageValue());
+         }
+@@ -1061,6 +1080,7 @@ public final class ItemStack {
+         ListTag nbttaglist = this.tag.getList("Enchantments", 10);
+ 
+         nbttaglist.add(EnchantmentHelper.storeEnchantment(EnchantmentHelper.getEnchantmentId(enchantment), (byte) level));
++        processEnchantOrder(this.tag); // Paper
+     }
+ 
+     public boolean isEnchanted() {

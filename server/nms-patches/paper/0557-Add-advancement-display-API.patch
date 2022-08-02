@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: syldium <syldium@mailo.com>
+Date: Fri, 9 Jul 2021 18:50:40 +0200
+Subject: [PATCH] Add advancement display API
+
+
+diff --git a/src/main/java/net/minecraft/advancements/DisplayInfo.java b/src/main/java/net/minecraft/advancements/DisplayInfo.java
+index db939a754e9308ad68f1b09a970f7a1b00a673bf..538f19f15b553d14ad95f09b1c81359f4c68b17f 100644
+--- a/src/main/java/net/minecraft/advancements/DisplayInfo.java
++++ b/src/main/java/net/minecraft/advancements/DisplayInfo.java
+@@ -28,6 +28,7 @@ public class DisplayInfo {
+     private final boolean hidden;
+     private float x;
+     private float y;
++    public final io.papermc.paper.advancement.AdvancementDisplay paper = new io.papermc.paper.advancement.PaperAdvancementDisplay(this); // Paper
+ 
+     public DisplayInfo(ItemStack icon, Component title, Component description, @Nullable ResourceLocation background, FrameType frame, boolean showToast, boolean announceToChat, boolean hidden) {
+         this.title = title;
