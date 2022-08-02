@@ -31,21 +31,21 @@ public class CraftWarden extends CraftMonster implements org.bukkit.entity.Warde
     public int getAnger(Entity entity) {
         Preconditions.checkArgument(entity != null, "Entity cannot be null");
 
-        return getHandle().getAngerManagement().getActiveAnger(((CraftEntity) entity).getHandle());
+        return this.getHandle().getAngerManagement().getActiveAnger(((CraftEntity) entity).getHandle());
     }
 
     @Override
     public void increaseAnger(Entity entity, int increase) {
         Preconditions.checkArgument(entity != null, "Entity cannot be null");
 
-        getHandle().getAngerManagement().increaseAnger(((CraftEntity) entity).getHandle(), increase);
+        this.getHandle().getAngerManagement().increaseAnger(((CraftEntity) entity).getHandle(), increase);
     }
 
     @Override
     public void setAnger(Entity entity, int anger) {
         Preconditions.checkArgument(entity != null, "Entity cannot be null");
 
-        getHandle().clearAnger(((CraftEntity) entity).getHandle());
-        getHandle().getAngerManagement().increaseAnger(((CraftEntity) entity).getHandle(), anger);
+        this.getHandle().clearAnger(((CraftEntity) entity).getHandle());
+        this.getHandle().getAngerManagement().increaseAnger(((CraftEntity) entity).getHandle(), anger);
     }
 }
